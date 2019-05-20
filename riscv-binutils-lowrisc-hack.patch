@@ -1,0 +1,21 @@
+diff -ur riscv-binutils/ld/lexsup.c old-binutils/ld/lexsup.c
+--- riscv-binutils/ld/lexsup.c	2019-01-19 16:01:33.000000000 +0000
++++ old-binutils/ld/lexsup.c	2019-05-20 16:37:44.479130999 +0100
+@@ -1168,7 +1168,7 @@
+ 	  link_info.prohibit_multiple_definition_absolute = TRUE;
+ 	  break;
+ 	case OPTION_SHARED:
+-	  if (config.has_shared)
++	  // shared support hacked here ...
+ 	    {
+ 	      if (bfd_link_relocatable (&link_info))
+ 		einfo (_("%F%P: -r and %s may not be used together\n"),
+@@ -1182,8 +1182,6 @@
+ 	      if (link_info.unresolved_syms_in_shared_libs == RM_NOT_YET_SET)
+ 		link_info.unresolved_syms_in_shared_libs = RM_IGNORE;
+ 	    }
+-	  else
+-	    einfo (_("%F%P: -shared not supported\n"));
+ 	  break;
+ 	case OPTION_PIE:
+ 	  if (config.has_shared)
