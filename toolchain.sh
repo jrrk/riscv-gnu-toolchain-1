@@ -15,9 +15,10 @@ cd ../glibc-2.26
 patch -p1 < ../glibc-2.26.patch 
 patch -p1 < ../glibc-2.26.new 
 cd ..
-mv 
 mv binutils-2.32 riscv-binutils
 mv gcc-8.3.0 riscv-gcc
 mv newlib-3.0.0 riscv-newlib
 mv gdb-8.3 riscv-gdb
 mv glibc-2.26 riscv-glibc
+./configure --prefix=/opt/riscv
+make -j 4 -s
