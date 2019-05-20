@@ -1,0 +1,423 @@
+Only in riscv-newlib: .git
+diff -ur newlib-3.0.0/newlib/libc/include/malloc.h riscv-newlib/newlib/libc/include/malloc.h
+--- newlib-3.0.0/newlib/libc/include/malloc.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/malloc.h	2019-05-20 08:41:28.924130944 +0100
+@@ -133,6 +133,10 @@
+ extern int _malloc_trim_r (struct _reent *, size_t);
+ #endif
+ 
++extern void __malloc_lock(struct _reent *);
++
++extern void __malloc_unlock(struct _reent *);
++
+ /* A compatibility routine for an earlier version of the allocator.  */
+ 
+ extern void mstats (char *);
+diff -ur newlib-3.0.0/newlib/libc/include/pthread.h riscv-newlib/newlib/libc/include/pthread.h
+--- newlib-3.0.0/newlib/libc/include/pthread.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/pthread.h	2019-05-20 08:41:28.924130944 +0100
+@@ -156,7 +156,7 @@
+ int	pthread_getschedparam (pthread_t __pthread, int *__policy,
+ 			       struct sched_param *__param);
+ int	pthread_setschedparam (pthread_t __pthread, int __policy,
+-			       struct sched_param *__param);
++			       const struct sched_param *__param);
+ 
+ /* Set Scheduling Priority of a Thread */
+ int	pthread_setschedprio (pthread_t thread, int prio);
+@@ -190,7 +190,7 @@
+ 
+ int	pthread_mutex_setprioceiling (pthread_mutex_t *__mutex,
+ 				      int __prioceiling, int *__old_ceiling);
+-int	pthread_mutex_getprioceiling (pthread_mutex_t *__mutex,
++int	pthread_mutex_getprioceiling (const pthread_mutex_t *__restrict __mutex,
+ 				      int *__prioceiling);
+ 
+ #endif /* _POSIX_THREAD_PRIO_PROTECT */
+diff -ur newlib-3.0.0/newlib/libc/include/ssp/ssp.h riscv-newlib/newlib/libc/include/ssp/ssp.h
+--- newlib-3.0.0/newlib/libc/include/ssp/ssp.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/ssp/ssp.h	2019-05-20 08:41:28.924130944 +0100
+@@ -51,7 +51,6 @@
+ 		__chk_fail()
+ #define __ssp_decl(rtype, fun, args) \
+ rtype __ssp_real_(fun) args __asm__(__ASMNAME(#fun)); \
+-__ssp_inline rtype fun args __asm__(__ASMNAME("__ssp_protected_" #fun)); \
+ __ssp_inline rtype fun args
+ #define __ssp_redirect_raw(rtype, fun, args, call, cond, bos) \
+ __ssp_decl(rtype, fun, args) \
+diff -ur newlib-3.0.0/newlib/libc/include/ssp/wchar.h riscv-newlib/newlib/libc/include/ssp/wchar.h
+--- newlib-3.0.0/newlib/libc/include/ssp/wchar.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/ssp/wchar.h	2019-05-20 08:41:28.924130944 +0100
+@@ -75,7 +75,7 @@
+     (__buf, __src, __nwc, __len, __ps), __buf != NULL, __ssp_bos)
+ #endif
+ 
+-__ssp_decl(wchar_t *, fgetws, (wchar_t *__restrict __buf, int __wlen, FILE *__restrict __fp))
++__ssp_decl(wchar_t *, fgetws, (wchar_t *__restrict __buf, int __wlen, __FILE *__restrict __fp))
+ {
+   if (__wlen > 0)
+     __ssp_check(__buf, (size_t)__wlen * sizeof(wchar_t) , __ssp_bos);
+@@ -83,7 +83,7 @@
+ }
+ 
+ #if __GNU_VISIBLE
+-__ssp_decl(wchar_t *, fgetws_unlocked, (wchar_t *__buf, int __wlen, FILE *__fp))
++__ssp_decl(wchar_t *, fgetws_unlocked, (wchar_t *__buf, int __wlen, __FILE *__fp))
+ {
+   if (__wlen > 0)
+     __ssp_check(__buf, (size_t)__wlen * sizeof(wchar_t) , __ssp_bos);
+diff -ur newlib-3.0.0/newlib/libc/include/stdlib.h riscv-newlib/newlib/libc/include/stdlib.h
+--- newlib-3.0.0/newlib/libc/include/stdlib.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/stdlib.h	2019-05-20 08:41:28.924130944 +0100
+@@ -140,8 +140,7 @@
+ int	rand (void);
+ void *	realloc (void *__r, size_t __size) _NOTHROW;
+ #if __BSD_VISIBLE
+-void	*reallocarray(void *, size_t, size_t) __result_use_check __alloc_size(2)
+-	    __alloc_size(3);
++void	*reallocarray(void *, size_t, size_t) __result_use_check __alloc_size((2,3));
+ void *	reallocf (void *__r, size_t __size);
+ #endif
+ #if __BSD_VISIBLE || __XSI_VISIBLE >= 4
+@@ -325,8 +324,8 @@
+  * If we're in a mode greater than C99, expose C11 functions.
+  */
+ #if __ISO_C_VISIBLE >= 2011
+-void *	aligned_alloc(size_t, size_t) __malloc_like __alloc_align(1)
+-	    __alloc_size(2);
++void *	aligned_alloc(size_t, size_t) __malloc_like __alloc_align((1))
++	    __alloc_size((2));
+ int	at_quick_exit(void (*)(void));
+ _Noreturn void
+ 	quick_exit(int);
+diff -ur newlib-3.0.0/newlib/libc/include/sys/cdefs.h riscv-newlib/newlib/libc/include/sys/cdefs.h
+--- newlib-3.0.0/newlib/libc/include/sys/cdefs.h	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/include/sys/cdefs.h	2019-05-20 08:41:28.924130944 +0100
+@@ -258,12 +258,12 @@
+ #define	__section(x)	__attribute__((__section__(x)))
+ #endif
+ #if __GNUC_PREREQ__(4, 3) || __has_attribute(__alloc_size__)
+-#define	__alloc_size(x)	__attribute__((__alloc_size__(x)))
++#define	__alloc_size(x)	__attribute__((__alloc_size__ x))
+ #else
+ #define	__alloc_size(x)
+ #endif
+ #if __GNUC_PREREQ__(4, 9) || __has_attribute(__alloc_align__)
+-#define	__alloc_align(x)	__attribute__((__alloc_align__(x)))
++#define	__alloc_align(x)	__attribute__((__alloc_align__ x))
+ #else
+ #define	__alloc_align(x)
+ #endif
+diff -ur newlib-3.0.0/newlib/libc/stdio/nano-vfprintf.c riscv-newlib/newlib/libc/stdio/nano-vfprintf.c
+--- newlib-3.0.0/newlib/libc/stdio/nano-vfprintf.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/stdio/nano-vfprintf.c	2019-05-20 08:41:28.988129683 +0100
+@@ -168,16 +168,6 @@
+ #include "vfieeefp.h"
+ #include "nano-vfprintf_local.h"
+ 
+-
+-/* GCC PR 14577 at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14557 */
+-#if __STDC_VERSION__ >= 201112L
+-#define va_ptr(ap) _Generic(&(ap), va_list *: &(ap), default: (va_list *)(ap))
+-#elif __GNUC__ >= 4
+-#define va_ptr(ap) __builtin_choose_expr(__builtin_types_compatible_p(__typeof__(&(ap)), va_list *), &(ap), (va_list *)(ap))
+-#else
+-#define va_ptr(ap) (sizeof(ap) == sizeof(va_list) ? (va_list *)&(ap) : (va_list *)(ap))
+-#endif
+-
+ /* The __ssputs_r function is shared between all versions of vfprintf
+    and vfwprintf.  */
+ #ifdef STRING_ONLY
+@@ -485,6 +475,7 @@
+   register char *cp;	/* Handy char pointer (short term usage).  */
+   const char *flag_chars;
+   struct _prt_data_t prt_data;	/* All data for decoding format string.  */
++  va_list ap_copy;
+ 
+   /* Output function pointer.  */
+   int (*pfunc)(struct _reent *, FILE *, const char *, size_t len);
+@@ -522,6 +513,9 @@
+   prt_data.blank = ' ';
+   prt_data.zero = '0';
+ 
++  /* GCC PR 14577 at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14557 */
++  va_copy (ap_copy, ap);
++
+   /* Scan the format for conversions (`%' character).  */
+   for (;;)
+     {
+@@ -577,7 +571,7 @@
+ 	   *	-- ANSI X3J11
+ 	   * They don't exclude field widths read from args.
+ 	   */
+-	  prt_data.width = GET_ARG (n, ap, int);
++	  prt_data.width = GET_ARG (n, ap_copy, int);
+ 	  if (prt_data.width < 0)
+ 	    {
+ 	      prt_data.width = -prt_data.width;
+@@ -598,7 +592,7 @@
+ 	  if (*fmt == '*')
+ 	    {
+ 	      fmt++;
+-	      prt_data.prec = GET_ARG (n, ap, int);
++	      prt_data.prec = GET_ARG (n, ap_copy, int);
+ 	      if (prt_data.prec < 0)
+ 		prt_data.prec = -1;
+ 	    }
+@@ -630,18 +624,16 @@
+ 	  if (_printf_float == NULL)
+ 	    {
+ 	      if (prt_data.flags & LONGDBL)
+-		GET_ARG (N, ap, _LONG_DOUBLE);
++		GET_ARG (N, ap_copy, _LONG_DOUBLE);
+ 	      else
+-		GET_ARG (N, ap, double);
++		GET_ARG (N, ap_copy, double);
+ 	    }
+ 	  else
+-	    {
+-	      n = _printf_float (data, &prt_data, fp, pfunc, va_ptr(ap));
+-	    }
++            n = _printf_float (data, &prt_data, fp, pfunc, &ap_copy);
+ 	}
+       else
+ #endif
+-	n = _printf_i (data, &prt_data, fp, pfunc, va_ptr(ap));
++	n = _printf_i (data, &prt_data, fp, pfunc, &ap_copy);
+ 
+       if (n == -1)
+ 	goto error;
+@@ -654,6 +646,7 @@
+ #ifndef STRING_ONLY
+   _newlib_flockfile_end (fp);
+ #endif
++  va_end (ap_copy);
+   return (__sferror (fp) ? EOF : prt_data.ret);
+ }
+ 
+diff -ur newlib-3.0.0/newlib/libc/stdio/nano-vfscanf.c riscv-newlib/newlib/libc/stdio/nano-vfscanf.c
+--- newlib-3.0.0/newlib/libc/stdio/nano-vfscanf.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/stdio/nano-vfscanf.c	2019-05-20 08:41:28.988129683 +0100
+@@ -119,15 +119,6 @@
+ #include "../stdlib/local.h"
+ #include "nano-vfscanf_local.h"
+ 
+-/* GCC PR 14577 at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14557 */
+-#if __STDC_VERSION__ >= 201112L
+-#define va_ptr(ap) _Generic(&(ap), va_list *: &(ap), default: (va_list *)(ap))
+-#elif __GNUC__ >= 4
+-#define va_ptr(ap) __builtin_choose_expr(__builtin_types_compatible_p(__typeof__(&(ap)), va_list *), &(ap), (va_list *)(ap))
+-#else
+-#define va_ptr(ap) (sizeof(ap) == sizeof(va_list) ? (va_list *)&(ap) : (va_list *)(ap))
+-#endif
+-
+ #define VFSCANF vfscanf
+ #define _VFSCANF_R _vfscanf_r
+ #define __SVFSCANF __svfscanf
+@@ -272,6 +263,7 @@
+   register int c;		/* Character from format, or conversion.  */
+   register char *p;		/* Points into all kinds of strings.  */
+   char ccltab[256];		/* Character class table for %[...].  */
++  va_list ap_copy;
+ 
+   int ret;
+   char *cp;
+@@ -287,6 +279,9 @@
+   scan_data.pfn_ungetc = _ungetc_r;
+   scan_data.pfn_refill = __srefill_r;
+ 
++  /* GCC PR 14577 at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14557 */
++  va_copy (ap_copy, ap);
++
+   for (;;)
+     {
+       if (*fmt == 0)
+@@ -379,17 +374,18 @@
+ 	    continue;
+ 
+ 	  if (scan_data.flags & SHORT)
+-	    *GET_ARG (N, ap, short *) = scan_data.nread;
++	    *GET_ARG (N, ap_copy, short *) = scan_data.nread;
+ 	  else if (scan_data.flags & LONG)
+-	    *GET_ARG (N, ap, long *) = scan_data.nread;
++	    *GET_ARG (N, ap_copy, long *) = scan_data.nread;
+ 	  else
+-	    *GET_ARG (N, ap, int *) = scan_data.nread;
++	    *GET_ARG (N, ap_copy, int *) = scan_data.nread;
+ 
+ 	  continue;
+ 
+ 	/* Disgusting backwards compatibility hacks.	XXX.  */
+ 	case '\0':		/* compat.  */
+ 	  _newlib_flockfile_exit (fp);
++	  va_end (ap_copy);
+ 	  return EOF;
+ 
+ #ifdef FLOATING_POINT
+@@ -427,12 +423,12 @@
+ 	}
+       ret = 0;
+       if (scan_data.code < CT_INT)
+-	ret = _scanf_chars (rptr, &scan_data, fp, va_ptr(ap));
++	ret = _scanf_chars (rptr, &scan_data, fp, &ap_copy);
+       else if (scan_data.code < CT_FLOAT)
+-	ret = _scanf_i (rptr, &scan_data, fp, va_ptr(ap));
++	ret = _scanf_i (rptr, &scan_data, fp, &ap_copy);
+ #ifdef FLOATING_POINT
+       else if (_scanf_float)
+-	ret = _scanf_float (rptr, &scan_data, fp, va_ptr(ap));
++	ret = _scanf_float (rptr, &scan_data, fp, &ap_copy);
+ #endif
+ 
+       if (ret == MATCH_FAILURE)
+@@ -446,12 +442,14 @@
+      invalid format string), return EOF if no matches yet, else number
+      of matches made prior to failure.  */
+   _newlib_flockfile_exit (fp);
++  va_end (ap_copy);
+   return scan_data.nassigned && !(fp->_flags & __SERR) ? scan_data.nassigned
+ 						       : EOF;
+ match_failure:
+ all_done:
+   /* Return number of matches, which can be 0 on match failure.  */
+   _newlib_flockfile_end (fp);
++  va_end (ap_copy);
+   return scan_data.nassigned;
+ }
+ 
+diff -ur newlib-3.0.0/newlib/libc/stdlib/exit.c riscv-newlib/newlib/libc/stdlib/exit.c
+--- newlib-3.0.0/newlib/libc/stdlib/exit.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/stdlib/exit.c	2019-05-20 08:41:28.996129525 +0100
+@@ -54,7 +54,7 @@
+ {
+ #ifdef _LITE_EXIT
+   /* Refer to comments in __atexit.c for more details of lite exit.  */
+-  void __call_exitprocs (int, void *)) __attribute__((weak);
++  void __call_exitprocs (int, void *) __attribute__((weak));
+   if (__call_exitprocs)
+ #endif
+     __call_exitprocs (code, NULL);
+diff -ur newlib-3.0.0/newlib/libc/stdlib/mallocr.c riscv-newlib/newlib/libc/stdlib/mallocr.c
+--- newlib-3.0.0/newlib/libc/stdlib/mallocr.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/stdlib/mallocr.c	2019-05-20 08:41:28.996129525 +0100
+@@ -2198,13 +2198,18 @@
+     /* Guarantee the next brk will be at a page boundary */
+     correction += pagesz - ((POINTER_UINT)(brk + sbrk_size) & (pagesz - 1));
+ 
++    /* To guarantee page boundary, correction should be less than pagesz */
++    correction &= (pagesz - 1);
++
+     /* Allocate correction */
+     new_brk = (char*)(MORECORE (correction));
+     if (new_brk == (char*)(MORECORE_FAILURE))
+       {
+ 	correction = 0;
+ 	correction_failed = 1;
+-	new_brk = brk;
++	new_brk = brk + sbrk_size;
++	if (front_misalign > 0)
++	  new_brk -= (MALLOC_ALIGNMENT) - front_misalign;
+       }
+ 
+     sbrked_mem += correction;
+diff -ur newlib-3.0.0/newlib/libc/stdlib/nano-mallocr.c riscv-newlib/newlib/libc/stdlib/nano-mallocr.c
+--- newlib-3.0.0/newlib/libc/stdlib/nano-mallocr.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/stdlib/nano-mallocr.c	2019-05-20 08:41:28.996129525 +0100
+@@ -35,6 +35,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <errno.h>
++#include <malloc.h>
+ 
+ #if DEBUG
+ #include <assert.h>
+@@ -150,20 +151,6 @@
+     struct malloc_chunk * next;
+ }chunk;
+ 
+-/* Copied from malloc.h */
+-struct mallinfo
+-{
+-  size_t arena;    /* total space allocated from system */
+-  size_t ordblks;  /* number of non-inuse chunks */
+-  size_t smblks;   /* unused -- always zero */
+-  size_t hblks;    /* number of mmapped regions */
+-  size_t hblkhd;   /* total space in mmapped regions */
+-  size_t usmblks;  /* unused -- always zero */
+-  size_t fsmblks;  /* unused -- always zero */
+-  size_t uordblks; /* total allocated space */
+-  size_t fordblks; /* total non-inuse space */
+-  size_t keepcost; /* top-most, releasable (via malloc_trim) space */
+-};
+ 
+ #define CHUNK_OFFSET ((malloc_size_t)(&(((struct malloc_chunk *)0)->next)))
+ 
+@@ -181,7 +168,6 @@
+ extern void nano_free (RARG void * free_p);
+ extern void nano_cfree(RARG void * ptr);
+ extern void * nano_calloc(RARG malloc_size_t n, malloc_size_t elem);
+-extern struct mallinfo nano_mallinfo(RONEARG);
+ extern void nano_malloc_stats(RONEARG);
+ extern malloc_size_t nano_malloc_usable_size(RARG void * ptr);
+ extern void * nano_realloc(RARG void * ptr, malloc_size_t size);
+diff -ur newlib-3.0.0/newlib/libc/time/mktime.c riscv-newlib/newlib/libc/time/mktime.c
+--- newlib-3.0.0/newlib/libc/time/mktime.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libc/time/mktime.c	2019-05-20 08:41:29.088127712 +0100
+@@ -188,7 +188,7 @@
+     }
+ 
+   /* compute total seconds */
+-  tim += (days * _SEC_IN_DAY);
++  tim += (time_t)days * _SEC_IN_DAY;
+ 
+   TZ_LOCK;
+ 
+diff -ur newlib-3.0.0/newlib/libm/common/nexttowardf.c riscv-newlib/newlib/libm/common/nexttowardf.c
+--- newlib-3.0.0/newlib/libm/common/nexttowardf.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libm/common/nexttowardf.c	2019-05-20 08:41:29.092127633 +0100
+@@ -33,7 +33,7 @@
+ // This is only necessary because the implementation of isnan only works
+ // properly when long double == double.
+ // See: https://sourceware.org/ml/newlib/2014/msg00684.html
+-#ifdef _LDBL_EQ_DOUBLE
++#ifdef _LDBL_EQ_DBL
+ 
+ float
+ nexttowardf (float x, long double y)
+@@ -75,4 +75,4 @@
+   return ux.value;
+ }
+ 
+-#endif // _LDBL_EQ_DOUBLE
++#endif // _LDBL_EQ_DBL
+diff -ur newlib-3.0.0/newlib/libm/common/s_llrint.c riscv-newlib/newlib/libm/common/s_llrint.c
+--- newlib-3.0.0/newlib/libm/common/s_llrint.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libm/common/s_llrint.c	2019-05-20 08:41:29.092127633 +0100
+@@ -93,9 +93,9 @@
+       if (j0 >= 52)
+ 	/* 64bit return: j0 in [52,62] */
+ 	/* 64bit return: left shift amt in [32,42] */
+-        result = ((long long int) ((i0 & 0x000fffff) | 0x0010000) << (j0 - 20)) | 
++        result = ((long long int) ((i0 & 0x000fffff) | 0x00100000) << (j0 - 20)) |
+ 		/* 64bit return: right shift amt in [0,10] */
+-                   (i1 << (j0 - 52));
++                   ((long long int) i1 << (j0 - 52));
+       else
+         {
+ 	  /* 64bit return: j0 in [20,51] */
+diff -ur newlib-3.0.0/newlib/libm/common/s_lrint.c riscv-newlib/newlib/libm/common/s_lrint.c
+--- newlib-3.0.0/newlib/libm/common/s_lrint.c	2018-01-18 18:07:45.000000000 +0000
++++ riscv-newlib/newlib/libm/common/s_lrint.c	2019-05-20 08:41:29.092127633 +0100
+@@ -131,9 +131,9 @@
+       if (j0 >= 52)
+ 	/* 64bit return: j0 in [52,62] */
+ 	/* 64bit return: left shift amt in [32,42] */
+-        result = ((long int) ((i0 & 0x000fffff) | 0x0010000) << (j0 - 20)) | 
++        result = ((long int) ((i0 & 0x000fffff) | 0x00100000) << (j0 - 20)) |
+ 		/* 64bit return: right shift amt in [0,10] */
+-                   (i1 << (j0 - 52));
++                   ((long int) i1 << (j0 - 52));
+       else
+         {
+ 	  /* 32bit return: j0 in [20,30] */
+Only in riscv-newlib: winsup

@@ -1,0 +1,1983 @@
+Only in gcc-8.3.0/gcc/ada/doc/share: _static
+diff -ur gcc-8.3.0/gcc/ChangeLog riscv-gcc/gcc/ChangeLog
+--- gcc-8.3.0/gcc/ChangeLog	2019-02-22 14:20:37.000000000 +0000
++++ riscv-gcc/gcc/ChangeLog	2019-05-20 08:39:51.322054078 +0100
+@@ -1,3 +1,192 @@
++2018-10-05  Andrew Waterman  <andrew@sifive.com>
++	    Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.md (f<quiet_pattern>_quiet<ANYF:mode><X:mode>4):
++	Add define_expand.  Add ! HONOR_SNANS check to current pattern.  Add
++	new pattern using HONOR_SNANS that emits one extra instruction.
++
++2018-10-03  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv-c.c (riscv_cpu_cpp_builtins): For ABI_ILP32E,
++	also define __riscv_abi_rve.  Delete trailing white space.
++
++2018-09-26  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.md (subsi3_extended2): Add J constraint.
++	(negdi2, negsi2, negsi2_extended, negsi2_extended2): New.
++
++2018-09-26  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.h (FUNCTION_ARG_REGNO_P): Fix comment.
++
++2018-09-25  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.c (riscv_split_symbol): Mark auipc label as weak
++	when target symbol is weak.
++
++2018-09-24  Jim Wilson  <jimw@sifive.com>
++
++	PR target/87391
++	* config/riscv/riscv.h (STACK_BOUNDARY): Test riscv_abi == ABI_ILP32E
++	not TARGET_RVE.
++	(ABI_STACK_BOUNDARY, MAX_ARGS_IN_REGISTERS): Likewise.
++
++2018-07-14  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/linux.h (TARGET_ASM_FILE_END): New.
++
++2018-07-12  Kito Cheng  <kito.cheng@gmail.com>
++
++        * config/riscv/riscv.c (enum riscv_privilege_levels): Add UNKNOWN_MODE.
++        (riscv_expand_epilogue): Add assertion to check interrupt mode.
++        (riscv_set_current_function): Extract getting interrupt type to new
++        function.
++        (riscv_get_interrupt_type): New function.
++        (riscv_merge_decl_attributes): New function, checking interrupt type is
++        same.
++        (TARGET_MERGE_DECL_ATTRIBUTES): Define.
++
++2018-07-05  Jim Wilson  <jimw@sifive.com>
++
++	* config.gcc (riscv*-*-*): When setting xlen, handle riscv-*.
++
++2018-07-02  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.c (riscv_expand_epilogue): Use emit_jump_insn
++	instead of emit_insn for interrupt returns.
++	* config/riscv/riscv.md (riscv_met): Add (return) to rtl.
++	(riscv_sret, riscv_uret): Likewise.
++
++2018-06-30  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/predicates.md (p2m1_shift_operand): New.
++	(high_mask_shift_operand): New.
++	* config/riscv/riscv.md (lshrsi3_zero_extend_3+1): New combiner
++	pattern using p2m1_shift_operand.
++	(lshsi3_zero_extend_3+2): New combiner pattern using
++	high_mask_shift_operand.
++
++2018-06-15  Sebastian Huber  <sebastian.huber@embedded-brains.de>
++
++	* config.gcc (riscv*-*-elf* | riscv*-*-rtems*): Use custom
++	multilibs for *-*-rtems*.
++	* config/riscv/t-rtems: New file.
++
++2018-06-06  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.c (enum riscv_privilege_levels): New.
++	(struct machine_function): New field interrupt_mode.
++	(riscv_handle_type_attribute): New function.  Add forward declaration.
++	(riscv_attribute_table) <interrupt>: Use riscv_handle_type_attribute.
++	(riscv_expand_epilogue): Check interrupt_mode field.
++	(riscv_set_current_function): Check interrupt attribute args and
++	set interrupt_mode field.
++	* config/riscv/riscv.md (UNSPECV_SRET, UNSPECV_URET): New.
++	(riscv_sret, riscv_uret): New.
++	* doc/extend.texi (RISC-V Function Attributes) <interrupt>: Document
++	new arguments to interrupt attribute.
++
++2018-06-04  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv-protos.h (riscv_expand_epilogue): Change bool arg
++	to int.
++	* config/riscv/riscv.c (riscv_for_each_saved_reg): New args epilogue
++	and maybe_eh_return.  Change regno to unsigned int.  Use new args to
++	handle EH_RETURN_DATA_REGNO registers properly.
++	(riscv_expand_prologue): Pass new args to riscv_for_each_saved_reg.
++	(riscv_expand_epilogue): Update comment.  Change argument name and
++	type.  Update code to use new name and type.  Pass new args to
++	riscv_for_each_saved_reg.  Only use EH_RETURN_STACKADJ_RTX when
++	EXCEPTION_RETURN.
++	* config/riscv/riscv.md (NORMAL_RETURN): New.
++	(SIBCALL_RETURN, EXCEPTION_RETURN): New.
++	(epilogue, sibcall_epilogue): Update riscv_expand_epilogue arg.
++	(eh_return): Call gen_eh_return_internal and emit barrier.
++	(eh_return_internal): Call riscv_expand_epilogue.
++
++2018-05-29  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.c (riscv_interrupt_type): Fix comment typo.
++
++2018-05-25  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv-protos.h (riscv_epilogue_uses): New.
++	* config/riscv/riscv.c (struct machine_function): Add
++	interrupt_handler_p and attribute_checked_p fields.
++	(riscv_attribute_table): Add interrupt.
++	(riscv_interrupt_type_p): New.
++	(riscv_save_reg_p): Save extra regs for interrupt handler.
++	(riscv_use_save_libcall): Return false  for interrupt handler.
++	(riscv_first_stack_step): Add forward declaration.
++	(riscv_compute_frame_info): New local interrupt_save_t1.  Set it
++	for interrupt handler with large frame.  Use it for saved reg list.
++	(riscv_expand_prologue): Move flag_stack_usage_info support to
++	eliminate duplication.
++	(riscv_expand_epilogue): Generate mret for interrupt handler.
++	(riscv_epilogue_uses): New.
++	(riscv_can_use_return_insn): Return false for interrupt handler.
++	(riscv_function_ok_for_sibcall): Likewise.
++	(riscv_set_current_function): Add interrupt handler support.
++	* config/riscv/riscv.h (EPILOGUE_USES): Call riscv_epilogue_uses.
++	* config/riscv/riscv.md (UNSPECV_MRET): New.
++	(GP_REGNUM): New.
++	(riscv_frflags, riscv_fsflags): Use tab after opcode.
++	(riscv_mret): New.
++	* doc/extend.texi (RISC-V Function Attributes) <interrupt>: New.
++
++2018-05-18  Kito Cheng  <kito.cheng@gmail.com>
++	    Monk Chiang  <sh.chiang04@gmail.com>
++	    Jim Wilson <jimw@sifive.com>
++
++	* common/config/riscv/riscv-common.c (riscv_parse_arch_string):
++	Add support to parse rv32e*.  Clear MASK_RVE for rv32i and rv64i.
++	* config.gcc (riscv*-*-*): Add support for rv32e* and ilp32e.
++	* config/riscv/riscv-c.c (riscv_cpu_cpp_builtins): Define
++	__riscv_32e when TARGET_RVE.  Handle ABI_ILP32E as soft-float ABI.
++	* config/riscv/riscv-opts.h (riscv_abi_type): Add ABI_ILP32E.
++	* config/riscv/riscv.c (riscv_compute_frame_info): When TARGET_RVE,
++	compute save_libcall_adjustment properly.
++	(riscv_option_override): Call error if TARGET_RVE and not ABI_ILP32E.
++	(riscv_conditional_register_usage): Handle TARGET_RVE and ABI_ILP32E.
++	* config/riscv/riscv.h (UNITS_PER_FP_ARG): Handle ABI_ILP32E.
++	(STACK_BOUNDARY, ABI_STACK_BOUNDARY): Handle TARGET_RVE.
++	(GP_REG_LAST, MAX_ARGS_IN_REGISTERS): Likewise.
++	(ABI_SPEC): Handle mabi=ilp32e.
++	* config/riscv/riscv.opt (abi_type): Add ABI_ILP32E.
++	(RVE): Add RVE mask.
++	* doc/invoke.texi (RISC-V options) <-mabi>: Add ilp32e info.
++	<-march>: Add rv32e as an example.
++
++2018-05-17  Jim Wilson  <jimw@sifive.com>
++
++	* expr.c (do_tablejump): When converting index to Pmode, if we have a
++	sign extended promoted subreg, and the range does not have the sign bit
++	set, then do a sign extend.
++
++	* config/riscv/riscv.c (riscv_extend_comparands): In unsigned QImode
++	test, check for sign extended subreg and/or constant operands, and
++	do a sign extend in that case.
++
++2018-05-16  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/riscv.md (<optab>si3_mask, <optab>si3_mask_1): Prepend
++	asterisk to name.
++	(<optab>di3_mask, <optab>di3_mask_1): Likewise.
++
++2018-05-09  Jim Wilson  <jimw@sifive.com>
++
++	PR target/84797
++	* config.gcc (riscv*-*-*): Handle --with-multilib-list.
++	* config/riscv/t-withmultilib: New.
++	* config/riscv/withmultilib.h: New.
++	* doc/install.texi: Document RISC-V --with-multilib-list support.
++
++2018-05-08  Jim Wilson  <jimw@sifive.com>
++
++	* config/riscv/linux.h (MUSL_ABI_SUFFIX): Delete unnecessary backslash.
++	(LD_EMUL_SUFFIX): New.
++	(LINK_SPEC): Use it.
++
+ 2019-02-22  Release Manager
+ 
+ 	* GCC 8.3.0 released.
+diff -ur gcc-8.3.0/gcc/common/config/riscv/riscv-common.c riscv-gcc/gcc/common/config/riscv/riscv-common.c
+--- gcc-8.3.0/gcc/common/config/riscv/riscv-common.c	2018-01-03 10:03:58.000000000 +0000
++++ riscv-gcc/gcc/common/config/riscv/riscv-common.c	2019-05-20 08:39:51.738045882 +0100
+@@ -27,7 +27,8 @@
+ #include "flags.h"
+ #include "diagnostic-core.h"
+ 
+-/* Parse a RISC-V ISA string into an option mask.  */
++/* Parse a RISC-V ISA string into an option mask.  Must clear or set all arch
++   dependent mask bits, in case more than one -march string is passed.  */
+ 
+ static void
+ riscv_parse_arch_string (const char *isa, int *flags, location_t loc)
+@@ -48,6 +49,8 @@
+     {
+       p++;
+ 
++      *flags &= ~MASK_RVE;
++
+       *flags |= MASK_MUL;
+       *flags |= MASK_ATOMIC;
+       *flags |= MASK_HARD_FLOAT;
+@@ -57,6 +60,8 @@
+     {
+       p++;
+ 
++      *flags &= ~MASK_RVE;
++
+       *flags &= ~MASK_MUL;
+       if (*p == 'm')
+ 	*flags |= MASK_MUL, p++;
+@@ -77,6 +82,28 @@
+ 	    }
+ 	}
+     }
++  else if (*p == 'e')
++    {
++      p++;
++
++      *flags |= MASK_RVE;
++
++      if (*flags & MASK_64BIT)
++	{
++	  error ("RV64E is not a valid base ISA");
++	  return;
++	}
++
++      *flags &= ~MASK_MUL;
++      if (*p == 'm')
++	*flags |= MASK_MUL, p++;
++
++      *flags &= ~MASK_ATOMIC;
++      if (*p == 'a')
++	*flags |= MASK_ATOMIC, p++;
++
++      *flags &= ~(MASK_HARD_FLOAT | MASK_DOUBLE_FLOAT);
++    }
+   else
+     {
+       error_at (loc, "-march=%s: invalid ISA string", isa);
+diff -ur gcc-8.3.0/gcc/config/riscv/linux.h riscv-gcc/gcc/config/riscv/linux.h
+--- gcc-8.3.0/gcc/config/riscv/linux.h	2018-04-21 02:03:30.000000000 +0100
++++ riscv-gcc/gcc/config/riscv/linux.h	2019-05-20 08:39:51.886042965 +0100
+@@ -30,7 +30,7 @@
+   "%{mabi=ilp32d:}" \
+   "%{mabi=lp64:-sf}" \
+   "%{mabi=lp64f:-sp}" \
+-  "%{mabi=lp64d:}" \
++  "%{mabi=lp64d:}"
+ 
+ #undef MUSL_DYNAMIC_LINKER
+ #define MUSL_DYNAMIC_LINKER "/lib/ld-musl-riscv" XLEN_SPEC MUSL_ABI_SUFFIX ".so.1"
+@@ -49,8 +49,16 @@
+ 
+ #define CPP_SPEC "%{pthread:-D_REENTRANT}"
+ 
++#define LD_EMUL_SUFFIX \
++  "%{mabi=lp64d:}" \
++  "%{mabi=lp64f:_lp64f}" \
++  "%{mabi=lp64:_lp64}" \
++  "%{mabi=ilp32d:}" \
++  "%{mabi=ilp32f:_ilp32f}" \
++  "%{mabi=ilp32:_ilp32}"
++
+ #define LINK_SPEC "\
+--melf" XLEN_SPEC "lriscv \
++-melf" XLEN_SPEC "lriscv" LD_EMUL_SUFFIX " \
+ %{mno-relax:--no-relax} \
+ %{shared} \
+   %{!shared: \
+@@ -58,3 +66,5 @@
+       %{rdynamic:-export-dynamic} \
+       -dynamic-linker " GNU_USER_DYNAMIC_LINKER "} \
+     %{static:-static}}"
++
++#define TARGET_ASM_FILE_END file_end_indicate_exec_stack
+diff -ur gcc-8.3.0/gcc/config/riscv/predicates.md riscv-gcc/gcc/config/riscv/predicates.md
+--- gcc-8.3.0/gcc/config/riscv/predicates.md	2018-01-03 10:03:58.000000000 +0000
++++ riscv-gcc/gcc/config/riscv/predicates.md	2019-05-20 08:39:51.886042965 +0100
+@@ -71,6 +71,26 @@
+   return !LUI_OPERAND (INTVAL (op)) && !SMALL_OPERAND (INTVAL (op));
+ })
+ 
++(define_predicate "p2m1_shift_operand"
++  (match_code "const_int")
++{
++  int val = exact_log2 (INTVAL (op) + 1);
++  if (val < 12)
++    return false;
++  return true;
++ })
++
++(define_predicate "high_mask_shift_operand"
++  (match_code "const_int")
++{
++  int val1 = clz_hwi (~ INTVAL (op));
++  int val0 = ctz_hwi (INTVAL (op));
++  if ((val0 + val1 == BITS_PER_WORD)
++      && val0 > 31 && val0 < 64)
++    return true;
++  return false;
++})
++
+ (define_predicate "move_operand"
+   (match_operand 0 "general_operand")
+ {
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv.c riscv-gcc/gcc/config/riscv/riscv.c
+--- gcc-8.3.0/gcc/config/riscv/riscv.c	2018-04-20 20:03:19.000000000 +0100
++++ riscv-gcc/gcc/config/riscv/riscv.c	2019-05-20 08:39:51.886042965 +0100
+@@ -122,6 +122,10 @@
+   HOST_WIDE_INT arg_pointer_offset;
+ };
+ 
++enum riscv_privilege_levels {
++  UNKNOWN_MODE, USER_MODE, SUPERVISOR_MODE, MACHINE_MODE
++};
++
+ struct GTY(())  machine_function {
+   /* The number of extra stack bytes taken up by register varargs.
+      This area is allocated by the callee at the very top of the frame.  */
+@@ -130,6 +134,14 @@
+   /* True if current function is a naked function.  */
+   bool naked_p;
+ 
++  /* True if current function is an interrupt function.  */
++  bool interrupt_handler_p;
++  /* For an interrupt handler, indicates the privilege level.  */
++  enum riscv_privilege_levels interrupt_mode;
++
++  /* True if attributes on current function have been checked.  */
++  bool attributes_checked_p;
++
+   /* The current frame information, calculated by riscv_compute_frame_info.  */
+   struct riscv_frame_info frame;
+ };
+@@ -276,6 +288,7 @@
+ };
+ 
+ static tree riscv_handle_fndecl_attribute (tree *, tree, tree, int, bool *);
++static tree riscv_handle_type_attribute (tree *, tree, tree, int, bool *);
+ 
+ /* Defining target-specific uses of __attribute__.  */
+ static const struct attribute_spec riscv_attribute_table[] =
+@@ -287,6 +300,9 @@
+   /* The attribute telling no prologue/epilogue.  */
+   { "naked",	0,  0, true, false, false, false,
+     riscv_handle_fndecl_attribute, NULL },
++  /* This attribute generates prologue/epilogue for interrupt handlers.  */
++  { "interrupt", 0, 1, false, true, true, false,
++    riscv_handle_type_attribute, NULL },
+ 
+   /* The last attribute spec is set to be NULL.  */
+   { NULL,	0,  0, false, false, false, false, NULL, NULL }
+@@ -1081,6 +1097,11 @@
+ 
+ 	  label = gen_rtx_SYMBOL_REF (Pmode, ggc_strdup (buf));
+ 	  SYMBOL_REF_FLAGS (label) |= SYMBOL_FLAG_LOCAL;
++	  /* ??? Ugly hack to make weak symbols work.  May need to change the
++	     RTL for the auipc and/or low patterns to get a better fix for
++	     this.  */
++	  if (! nonzero_address_p (addr))
++	    SYMBOL_REF_WEAK (label) = 1;
+ 
+ 	  if (temp == NULL)
+ 	    temp = gen_reg_rtx (Pmode);
+@@ -2002,8 +2023,18 @@
+   /* Comparisons consider all XLEN bits, so extend sub-XLEN values.  */
+   if (GET_MODE_SIZE (word_mode) > GET_MODE_SIZE (GET_MODE (*op0)))
+     {
+-      /* It is more profitable to zero-extend QImode values.  */
+-      if (unsigned_condition (code) == code && GET_MODE (*op0) == QImode)
++      /* It is more profitable to zero-extend QImode values.  But not if the
++	 first operand has already been sign-extended, and the second one is
++	 is a constant or has already been sign-extended also.  */
++      if (unsigned_condition (code) == code
++	  && (GET_MODE (*op0) == QImode
++	      && ! (GET_CODE (*op0) == SUBREG
++		    && SUBREG_PROMOTED_VAR_P (*op0)
++		    && SUBREG_PROMOTED_SIGNED_P (*op0)
++		    && (CONST_INT_P (*op1)
++			|| (GET_CODE (*op1) == SUBREG
++			    && SUBREG_PROMOTED_VAR_P (*op1)
++			    && SUBREG_PROMOTED_SIGNED_P (*op1))))))
+ 	{
+ 	  *op0 = gen_rtx_ZERO_EXTEND (word_mode, *op0);
+ 	  if (CONST_INT_P (*op1))
+@@ -2703,7 +2734,55 @@
+   return NULL_TREE;
+ }
+ 
+-/* Return true if func is a naked function.  */
++/* Verify type based attributes.  NODE is the what the attribute is being
++   applied to.  NAME is the attribute name.  ARGS are the attribute args.
++   FLAGS gives info about the context.  NO_ADD_ATTRS should be set to true if
++   the attribute should be ignored.  */
++
++static tree
++riscv_handle_type_attribute (tree *node ATTRIBUTE_UNUSED, tree name, tree args,
++			     int flags ATTRIBUTE_UNUSED, bool *no_add_attrs)
++{
++  /* Check for an argument.  */
++  if (is_attribute_p ("interrupt", name))
++    {
++      if (args)
++	{
++	  tree cst = TREE_VALUE (args);
++	  const char *string;
++
++	  if (TREE_CODE (cst) != STRING_CST)
++	    {
++	      warning (OPT_Wattributes,
++		       "%qE attribute requires a string argument",
++		       name);
++	      *no_add_attrs = true;
++	      return NULL_TREE;
++	    }
++
++	  string = TREE_STRING_POINTER (cst);
++	  if (strcmp (string, "user") && strcmp (string, "supervisor")
++	      && strcmp (string, "machine"))
++	    {
++	      warning (OPT_Wattributes,
++		       "argument to %qE attribute is not \"user\", \"supervisor\", or \"machine\"",
++		       name);
++	      *no_add_attrs = true;
++	    }
++	}
++    }
++
++  return NULL_TREE;
++}
++
++/* Return true if function TYPE is an interrupt function.  */
++static bool
++riscv_interrupt_type_p (tree type)
++{
++  return lookup_attribute ("interrupt", TYPE_ATTRIBUTES (type)) != NULL;
++}
++
++/* Return true if FUNC is a naked function.  */
+ static bool
+ riscv_naked_function_p (tree func)
+ {
+@@ -3209,6 +3288,28 @@
+   if (regno == RETURN_ADDR_REGNUM && crtl->calls_eh_return)
+     return true;
+ 
++  /* If this is an interrupt handler, then must save extra registers.  */
++  if (cfun->machine->interrupt_handler_p)
++    {
++      /* zero register is always zero.  */
++      if (regno == GP_REG_FIRST)
++	return false;
++
++      /* The function will return the stack pointer to its original value.  */
++      if (regno == STACK_POINTER_REGNUM)
++	return false;
++
++      /* By convention, we assume that gp and tp are safe.  */
++      if (regno == GP_REGNUM || regno == THREAD_POINTER_REGNUM)
++	return false;
++
++      /* We must save every register used in this function.  If this is not a
++	 leaf function, then we must save all temporary registers.  */
++      if (df_regs_ever_live_p (regno)
++	  || (!crtl->is_leaf && call_used_regs[regno]))
++	return true;
++    }
++
+   return false;
+ }
+ 
+@@ -3216,7 +3317,8 @@
+ static bool
+ riscv_use_save_libcall (const struct riscv_frame_info *frame)
+ {
+-  if (!TARGET_SAVE_RESTORE || crtl->calls_eh_return || frame_pointer_needed)
++  if (!TARGET_SAVE_RESTORE || crtl->calls_eh_return || frame_pointer_needed
++      || cfun->machine->interrupt_handler_p)
+     return false;
+ 
+   return frame->save_libcall_adjustment != 0;
+@@ -3275,21 +3377,35 @@
+    They decrease stack_pointer_rtx but leave frame_pointer_rtx and
+    hard_frame_pointer_rtx unchanged.  */
+ 
++static HOST_WIDE_INT riscv_first_stack_step (struct riscv_frame_info *frame);
++
+ static void
+ riscv_compute_frame_info (void)
+ {
+   struct riscv_frame_info *frame;
+   HOST_WIDE_INT offset;
++  bool interrupt_save_t1 = false;
+   unsigned int regno, i, num_x_saved = 0, num_f_saved = 0;
+ 
+   frame = &cfun->machine->frame;
++
++  /* In an interrupt function, if we have a large frame, then we need to
++     save/restore t1.  We check for this before clearing the frame struct.  */
++  if (cfun->machine->interrupt_handler_p)
++    {
++      HOST_WIDE_INT step1 = riscv_first_stack_step (frame);
++      if (! SMALL_OPERAND (frame->total_size - step1))
++	interrupt_save_t1 = true;
++    }
++
+   memset (frame, 0, sizeof (*frame));
+ 
+   if (!cfun->machine->naked_p)
+     {
+       /* Find out which GPRs we need to save.  */
+       for (regno = GP_REG_FIRST; regno <= GP_REG_LAST; regno++)
+-	if (riscv_save_reg_p (regno))
++	if (riscv_save_reg_p (regno)
++	    || (interrupt_save_t1 && (regno == T1_REGNUM)))
+ 	  frame->mask |= 1 << (regno - GP_REG_FIRST), num_x_saved++;
+ 
+       /* If this function calls eh_return, we must also save and restore the
+@@ -3324,7 +3440,14 @@
+ 
+       /* Only use save/restore routines if they don't alter the stack size.  */
+       if (RISCV_STACK_ALIGN (num_save_restore * UNITS_PER_WORD) == x_save_size)
+-	frame->save_libcall_adjustment = x_save_size;
++	{
++	  /* Libcall saves/restores 3 registers at once, so we need to
++	     allocate 12 bytes for callee-saved register.  */
++	  if (TARGET_RVE)
++	    x_save_size = 3 * UNITS_PER_WORD;
++
++	  frame->save_libcall_adjustment = x_save_size;
++	}
+ 
+       offset += x_save_size;
+     }
+@@ -3433,23 +3556,45 @@
+    of the frame.  */
+ 
+ static void
+-riscv_for_each_saved_reg (HOST_WIDE_INT sp_offset, riscv_save_restore_fn fn)
++riscv_for_each_saved_reg (HOST_WIDE_INT sp_offset, riscv_save_restore_fn fn,
++			  bool epilogue, bool maybe_eh_return)
+ {
+   HOST_WIDE_INT offset;
+ 
+   /* Save the link register and s-registers. */
+   offset = cfun->machine->frame.gp_sp_offset - sp_offset;
+-  for (int regno = GP_REG_FIRST; regno <= GP_REG_LAST; regno++)
++  for (unsigned int regno = GP_REG_FIRST; regno <= GP_REG_LAST; regno++)
+     if (BITSET_P (cfun->machine->frame.mask, regno - GP_REG_FIRST))
+       {
+-	riscv_save_restore_reg (word_mode, regno, offset, fn);
++	bool handle_reg = TRUE;
++
++	/* If this is a normal return in a function that calls the eh_return
++	   builtin, then do not restore the eh return data registers as that
++	   would clobber the return value.  But we do still need to save them
++	   in the prologue, and restore them for an exception return, so we
++	   need special handling here.  */
++	if (epilogue && !maybe_eh_return && crtl->calls_eh_return)
++	  {
++	    unsigned int i, regnum;
++
++	    for (i = 0; (regnum = EH_RETURN_DATA_REGNO (i)) != INVALID_REGNUM;
++		 i++)
++	      if (regno == regnum)
++		{
++		  handle_reg = FALSE;
++		  break;
++		}
++	  }
++
++	if (handle_reg)
++	  riscv_save_restore_reg (word_mode, regno, offset, fn);
+ 	offset -= UNITS_PER_WORD;
+       }
+ 
+   /* This loop must iterate over the same space as its companion in
+      riscv_compute_frame_info.  */
+   offset = cfun->machine->frame.fp_sp_offset - sp_offset;
+-  for (int regno = FP_REG_FIRST; regno <= FP_REG_LAST; regno++)
++  for (unsigned int regno = FP_REG_FIRST; regno <= FP_REG_LAST; regno++)
+     if (BITSET_P (cfun->machine->frame.fmask, regno - FP_REG_FIRST))
+       {
+ 	machine_mode mode = TARGET_DOUBLE_FLOAT ? DFmode : SFmode;
+@@ -3595,17 +3740,12 @@
+   unsigned mask = frame->mask;
+   rtx insn;
+ 
+-  if (cfun->machine->naked_p)
+-    {
+-      if (flag_stack_usage_info)
+-	current_function_static_stack_size = 0;
+-
+-      return;
+-    }
+-
+   if (flag_stack_usage_info)
+     current_function_static_stack_size = size;
+ 
++  if (cfun->machine->naked_p)
++    return;
++
+   /* When optimizing for size, call a subroutine to save the registers.  */
+   if (riscv_use_save_libcall (frame))
+     {
+@@ -3630,7 +3770,7 @@
+ 			    GEN_INT (-step1));
+       RTX_FRAME_RELATED_P (emit_insn (insn)) = 1;
+       size -= step1;
+-      riscv_for_each_saved_reg (size, riscv_save_reg);
++      riscv_for_each_saved_reg (size, riscv_save_reg, false, false);
+     }
+ 
+   frame->mask = mask; /* Undo the above fib.  */
+@@ -3692,11 +3832,11 @@
+   return dwarf;
+ }
+ 
+-/* Expand an "epilogue" or "sibcall_epilogue" pattern; SIBCALL_P
+-   says which.  */
++/* Expand an "epilogue", "sibcall_epilogue", or "eh_return_internal" pattern;
++   style says which.  */
+ 
+ void
+-riscv_expand_epilogue (bool sibcall_p)
++riscv_expand_epilogue (int style)
+ {
+   /* Split the frame into two.  STEP1 is the amount of stack we should
+      deallocate before restoring the registers.  STEP2 is the amount we
+@@ -3707,7 +3847,8 @@
+   unsigned mask = frame->mask;
+   HOST_WIDE_INT step1 = frame->total_size;
+   HOST_WIDE_INT step2 = 0;
+-  bool use_restore_libcall = !sibcall_p && riscv_use_save_libcall (frame);
++  bool use_restore_libcall = ((style == NORMAL_RETURN)
++			      && riscv_use_save_libcall (frame));
+   rtx ra = gen_rtx_REG (Pmode, RETURN_ADDR_REGNUM);
+   rtx insn;
+ 
+@@ -3717,14 +3858,14 @@
+ 
+   if (cfun->machine->naked_p)
+     {
+-      gcc_assert (!sibcall_p);
++      gcc_assert (style == NORMAL_RETURN);
+ 
+       emit_jump_insn (gen_return ());
+ 
+       return;
+     }
+ 
+-  if (!sibcall_p && riscv_can_use_return_insn ())
++  if ((style == NORMAL_RETURN) && riscv_can_use_return_insn ())
+     {
+       emit_jump_insn (gen_return ());
+       return;
+@@ -3799,7 +3940,8 @@
+     frame->mask = 0; /* Temporarily fib that we need not save GPRs.  */
+ 
+   /* Restore the registers.  */
+-  riscv_for_each_saved_reg (frame->total_size - step2, riscv_restore_reg);
++  riscv_for_each_saved_reg (frame->total_size - step2, riscv_restore_reg,
++			    true, style == EXCEPTION_RETURN);
+ 
+   if (use_restore_libcall)
+     {
+@@ -3838,14 +3980,48 @@
+     }
+ 
+   /* Add in the __builtin_eh_return stack adjustment. */
+-  if (crtl->calls_eh_return)
++  if ((style == EXCEPTION_RETURN) && crtl->calls_eh_return)
+     emit_insn (gen_add3_insn (stack_pointer_rtx, stack_pointer_rtx,
+ 			      EH_RETURN_STACKADJ_RTX));
+ 
+-  if (!sibcall_p)
++  /* Return from interrupt.  */
++  if (cfun->machine->interrupt_handler_p)
++    {
++      enum riscv_privilege_levels mode = cfun->machine->interrupt_mode;
++
++      gcc_assert (mode != UNKNOWN_MODE);
++
++      if (mode == MACHINE_MODE)
++	emit_jump_insn (gen_riscv_mret ());
++      else if (mode == SUPERVISOR_MODE)
++	emit_jump_insn (gen_riscv_sret ());
++      else
++	emit_jump_insn (gen_riscv_uret ());
++    }
++  else if (style != SIBCALL_RETURN)
+     emit_jump_insn (gen_simple_return_internal (ra));
+ }
+ 
++/* Implement EPILOGUE_USES.  */
++
++bool
++riscv_epilogue_uses (unsigned int regno)
++{
++  if (regno == RETURN_ADDR_REGNUM)
++    return true;
++
++  if (epilogue_completed && cfun->machine->interrupt_handler_p)
++    {
++      /* An interrupt function restores temp regs, so we must indicate that
++	 they are live at function end.  */
++      if (df_regs_ever_live_p (regno)
++	    || (!crtl->is_leaf && call_used_regs[regno]))
++	return true;
++    }
++
++  return false;
++}
++
+ /* Return nonzero if this function is known to have a null epilogue.
+    This allows the optimizer to omit jumps to jumps if no stack
+    was created.  */
+@@ -3853,7 +4029,8 @@
+ bool
+ riscv_can_use_return_insn (void)
+ {
+-  return reload_completed && cfun->machine->frame.total_size == 0;
++  return (reload_completed && cfun->machine->frame.total_size == 0
++	  && ! cfun->machine->interrupt_handler_p);
+ }
+ 
+ /* Implement TARGET_SECONDARY_MEMORY_NEEDED.
+@@ -4137,6 +4314,9 @@
+     error ("requested ABI requires -march to subsume the %qc extension",
+ 	   UNITS_PER_FP_ARG > 8 ? 'Q' : (UNITS_PER_FP_ARG > 4 ? 'D' : 'F'));
+ 
++  if (TARGET_RVE && riscv_abi != ABI_ILP32E)
++    error ("rv32e requires ilp32e ABI");
++
+   /* We do not yet support ILP32 on RV64.  */
+   if (BITS_PER_WORD != POINTER_SIZE)
+     error ("ABI requires -march=rv%d", POINTER_SIZE);
+@@ -4161,6 +4341,19 @@
+ static void
+ riscv_conditional_register_usage (void)
+ {
++  /* We have only x0~x15 on RV32E.  */
++  if (TARGET_RVE)
++    {
++      for (int r = 16; r <= 31; r++)
++	fixed_regs[r] = 1;
++    }
++
++  if (riscv_abi == ABI_ILP32E)
++    {
++      for (int r = 16; r <= 31; r++)
++	call_used_regs[r] = 1;
++    }
++
+   if (!TARGET_HARD_FLOAT)
+     {
+       for (int regno = FP_REG_FIRST; regno <= FP_REG_LAST; regno++)
+@@ -4333,13 +4526,48 @@
+   if (TARGET_SAVE_RESTORE)
+     return false;
+ 
+-  /* Don't use sibcall for naked function.  */
++  /* Don't use sibcall for naked functions.  */
+   if (cfun->machine->naked_p)
+     return false;
+ 
++  /* Don't use sibcall for interrupt functions.  */
++  if (cfun->machine->interrupt_handler_p)
++    return false;
++
+   return true;
+ }
+ 
++/* Get the intterupt type, return UNKNOWN_MODE if it's not
++   interrupt function. */
++static enum riscv_privilege_levels
++riscv_get_interrupt_type (tree decl)
++{
++  gcc_assert (decl != NULL_TREE);
++
++  if ((TREE_CODE(decl) != FUNCTION_DECL)
++      || (!riscv_interrupt_type_p (TREE_TYPE (decl))))
++    return UNKNOWN_MODE;
++
++  tree attr_args
++    = TREE_VALUE (lookup_attribute ("interrupt",
++				    TYPE_ATTRIBUTES (TREE_TYPE (decl))));
++
++  if (attr_args && TREE_CODE (TREE_VALUE (attr_args)) != VOID_TYPE)
++    {
++      const char *string = TREE_STRING_POINTER (TREE_VALUE (attr_args));
++
++      if (!strcmp (string, "user"))
++	return USER_MODE;
++      else if (!strcmp (string, "supervisor"))
++	return SUPERVISOR_MODE;
++      else /* Must be "machine".  */
++	return MACHINE_MODE;
++    }
++  else
++    /* Interrupt attributes are machine mode by default.  */
++    return MACHINE_MODE;
++}
++
+ /* Implement `TARGET_SET_CURRENT_FUNCTION'.  */
+ /* Sanity cheching for above function attributes.  */
+ static void
+@@ -4348,10 +4576,60 @@
+   if (decl == NULL_TREE
+       || current_function_decl == NULL_TREE
+       || current_function_decl == error_mark_node
+-      || !cfun->machine)
++      || ! cfun->machine
++      || cfun->machine->attributes_checked_p)
+     return;
+ 
+   cfun->machine->naked_p = riscv_naked_function_p (decl);
++  cfun->machine->interrupt_handler_p
++    = riscv_interrupt_type_p (TREE_TYPE (decl));
++
++  if (cfun->machine->naked_p && cfun->machine->interrupt_handler_p)
++    error ("function attributes %qs and %qs are mutually exclusive",
++	   "interrupt", "naked");
++
++  if (cfun->machine->interrupt_handler_p)
++    {
++      tree ret = TREE_TYPE (TREE_TYPE (decl));
++      tree args = TYPE_ARG_TYPES (TREE_TYPE (decl));
++
++      if (TREE_CODE (ret) != VOID_TYPE)
++	error ("%qs function cannot return a value", "interrupt");
++
++      if (args && TREE_CODE (TREE_VALUE (args)) != VOID_TYPE)
++	error ("%qs function cannot have arguments", "interrupt");
++
++      cfun->machine->interrupt_mode = riscv_get_interrupt_type (decl);
++
++      gcc_assert (cfun->machine->interrupt_mode != UNKNOWN_MODE);
++    }
++
++  /* Don't print the above diagnostics more than once.  */
++  cfun->machine->attributes_checked_p = 1;
++}
++
++/* Implement TARGET_MERGE_DECL_ATTRIBUTES. */
++static tree
++riscv_merge_decl_attributes (tree olddecl, tree newdecl)
++{
++  tree combined_attrs;
++
++  enum riscv_privilege_levels old_interrupt_type
++    = riscv_get_interrupt_type (olddecl);
++  enum riscv_privilege_levels new_interrupt_type
++    = riscv_get_interrupt_type (newdecl);
++
++  /* Check old and new has same interrupt type. */
++  if ((old_interrupt_type != UNKNOWN_MODE)
++      && (new_interrupt_type != UNKNOWN_MODE)
++      && (old_interrupt_type != new_interrupt_type))
++    error ("%qs function cannot have different intterupt type.", "interrupt");
++
++  /* Create combined attributes.  */
++  combined_attrs = merge_attributes (DECL_ATTRIBUTES (olddecl),
++                                     DECL_ATTRIBUTES (newdecl));
++
++  return combined_attrs;
+ }
+ 
+ /* Implement TARGET_CANNOT_COPY_INSN_P.  */
+@@ -4550,6 +4828,9 @@
+ #undef TARGET_CONSTANT_ALIGNMENT
+ #define TARGET_CONSTANT_ALIGNMENT riscv_constant_alignment
+ 
++#undef TARGET_MERGE_DECL_ATTRIBUTES
++#define TARGET_MERGE_DECL_ATTRIBUTES riscv_merge_decl_attributes
++
+ #undef TARGET_ATTRIBUTE_TABLE
+ #define TARGET_ATTRIBUTE_TABLE riscv_attribute_table
+ 
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv-c.c riscv-gcc/gcc/config/riscv/riscv-c.c
+--- gcc-8.3.0/gcc/config/riscv/riscv-c.c	2018-01-03 10:03:58.000000000 +0000
++++ riscv-gcc/gcc/config/riscv/riscv-c.c	2019-05-20 08:39:51.886042965 +0100
+@@ -35,58 +35,65 @@
+ riscv_cpu_cpp_builtins (cpp_reader *pfile)
+ {
+   builtin_define ("__riscv");
+-  
++
+   if (TARGET_RVC)
+     builtin_define ("__riscv_compressed");
+-  
++
++  if (TARGET_RVE)
++    builtin_define ("__riscv_32e");
++
+   if (TARGET_ATOMIC)
+     builtin_define ("__riscv_atomic");
+-  
++
+   if (TARGET_MUL)
+     builtin_define ("__riscv_mul");
+   if (TARGET_DIV)
+     builtin_define ("__riscv_div");
+   if (TARGET_DIV && TARGET_MUL)
+     builtin_define ("__riscv_muldiv");
+-  
++
+   builtin_define_with_int_value ("__riscv_xlen", UNITS_PER_WORD * 8);
+   if (TARGET_HARD_FLOAT)
+     builtin_define_with_int_value ("__riscv_flen", UNITS_PER_FP_REG * 8);
+-  
++
+   if (TARGET_HARD_FLOAT && TARGET_FDIV)
+     {
+       builtin_define ("__riscv_fdiv");
+       builtin_define ("__riscv_fsqrt");
+     }
+-  
++
+   switch (riscv_abi)
+     {
++    case ABI_ILP32E:
++      builtin_define ("__riscv_abi_rve");
++      gcc_fallthrough ();
++
+     case ABI_ILP32:
+     case ABI_LP64:
+       builtin_define ("__riscv_float_abi_soft");
+       break;
+-  
++
+     case ABI_ILP32F:
+     case ABI_LP64F:
+       builtin_define ("__riscv_float_abi_single");
+       break;
+-  
++
+     case ABI_ILP32D:
+     case ABI_LP64D:
+       builtin_define ("__riscv_float_abi_double");
+       break;
+     }
+-  
++
+   switch (riscv_cmodel)
+     {
+     case CM_MEDLOW:
+       builtin_define ("__riscv_cmodel_medlow");
+       break;
+-  
++
+     case CM_MEDANY:
+       builtin_define ("__riscv_cmodel_medany");
+       break;
+-  
++
+     case CM_PIC:
+       builtin_define ("__riscv_cmodel_pic");
+       break;
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv.h riscv-gcc/gcc/config/riscv/riscv.h
+--- gcc-8.3.0/gcc/config/riscv/riscv.h	2018-04-02 23:37:21.000000000 +0100
++++ riscv-gcc/gcc/config/riscv/riscv.h	2019-05-20 08:39:51.890042886 +0100
+@@ -102,9 +102,11 @@
+ #define UNITS_PER_FP_REG (TARGET_DOUBLE_FLOAT ? 8 : 4)
+ 
+ /* The largest type that can be passed in floating-point registers.  */
+-#define UNITS_PER_FP_ARG					\
+-  (riscv_abi == ABI_ILP32 || riscv_abi == ABI_LP64 ? 0 :	\
+-   riscv_abi == ABI_ILP32F || riscv_abi == ABI_LP64F ? 4 : 8)	\
++#define UNITS_PER_FP_ARG						\
++  ((riscv_abi == ABI_ILP32 || riscv_abi == ABI_ILP32E			\
++    || riscv_abi == ABI_LP64)						\
++   ? 0 									\
++   : ((riscv_abi == ABI_ILP32F || riscv_abi == ABI_LP64F) ? 4 : 8))
+ 
+ /* Set the sizes of the core types.  */
+ #define SHORT_TYPE_SIZE 16
+@@ -124,10 +126,11 @@
+ #define FUNCTION_BOUNDARY (TARGET_RVC ? 16 : 32)
+ 
+ /* The smallest supported stack boundary the calling convention supports.  */
+-#define STACK_BOUNDARY (2 * BITS_PER_WORD)
++#define STACK_BOUNDARY \
++  (riscv_abi == ABI_ILP32E ? BITS_PER_WORD : 2 * BITS_PER_WORD)
+ 
+ /* The ABI stack alignment.  */
+-#define ABI_STACK_BOUNDARY 128
++#define ABI_STACK_BOUNDARY (riscv_abi == ABI_ILP32E ? BITS_PER_WORD : 128)
+ 
+ /* There is no point aligning anything to a rounder boundary than this.  */
+ #define BIGGEST_ALIGNMENT 128
+@@ -260,7 +263,7 @@
+ /* Internal macros to classify an ISA register's type.  */
+ 
+ #define GP_REG_FIRST 0
+-#define GP_REG_LAST  31
++#define GP_REG_LAST  (TARGET_RVE ? 15 : 31)
+ #define GP_REG_NUM   (GP_REG_LAST - GP_REG_FIRST + 1)
+ 
+ #define FP_REG_FIRST 32
+@@ -490,7 +493,7 @@
+ #define GP_RETURN GP_ARG_FIRST
+ #define FP_RETURN (UNITS_PER_FP_ARG == 0 ? GP_RETURN : FP_ARG_FIRST)
+ 
+-#define MAX_ARGS_IN_REGISTERS 8
++#define MAX_ARGS_IN_REGISTERS (riscv_abi == ABI_ILP32E ? 6 : 8)
+ 
+ /* Symbolic macros for the first/last argument registers.  */
+ 
+@@ -513,8 +516,7 @@
+ #define FUNCTION_VALUE_REGNO_P(N) ((N) == GP_RETURN || (N) == FP_RETURN)
+ 
+ /* 1 if N is a possible register number for function argument passing.
+-   We have no FP argument registers when soft-float.  When FP registers
+-   are 32 bits, we can't directly reference the odd numbered ones.  */
++   We have no FP argument registers when soft-float.  */
+ 
+ /* Accept arguments in a0-a7, and in fa0-fa7 if permitted by the ABI.  */
+ #define FUNCTION_ARG_REGNO_P(N)						\
+@@ -536,7 +538,7 @@
+ #define INIT_CUMULATIVE_ARGS(CUM, FNTYPE, LIBNAME, INDIRECT, N_NAMED_ARGS) \
+   memset (&(CUM), 0, sizeof (CUM))
+ 
+-#define EPILOGUE_USES(REGNO)	((REGNO) == RETURN_ADDR_REGNUM)
++#define EPILOGUE_USES(REGNO)	riscv_epilogue_uses (REGNO)
+ 
+ /* Align based on stack boundary, which might have been set by the user.  */
+ #define RISCV_STACK_ALIGN(LOC) \
+@@ -870,6 +872,7 @@
+ 
+ #define ABI_SPEC \
+   "%{mabi=ilp32:ilp32}" \
++  "%{mabi=ilp32e:ilp32e}" \
+   "%{mabi=ilp32f:ilp32f}" \
+   "%{mabi=ilp32d:ilp32d}" \
+   "%{mabi=lp64:lp64}" \
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv.md riscv-gcc/gcc/config/riscv/riscv.md
+--- gcc-8.3.0/gcc/config/riscv/riscv.md	2018-04-02 23:37:21.000000000 +0100
++++ riscv-gcc/gcc/config/riscv/riscv.md	2019-05-20 08:39:51.890042886 +0100
+@@ -56,6 +56,11 @@
+   UNSPECV_FRFLAGS
+   UNSPECV_FSFLAGS
+ 
++  ;; Interrupt handler instructions.
++  UNSPECV_MRET
++  UNSPECV_SRET
++  UNSPECV_URET
++
+   ;; Blockage and synchronization.
+   UNSPECV_BLOCKAGE
+   UNSPECV_FENCE
+@@ -64,11 +69,16 @@
+ 
+ (define_constants
+   [(RETURN_ADDR_REGNUM		1)
++   (GP_REGNUM 			3)
+    (T0_REGNUM			5)
+    (T1_REGNUM			6)
+    (S0_REGNUM			8)
+    (S1_REGNUM			9)
+    (S2_REGNUM			18)
++
++   (NORMAL_RETURN		0)
++   (SIBCALL_RETURN		1)
++   (EXCEPTION_RETURN		2)
+ ])
+ 
+ (include "predicates.md")
+@@ -494,16 +504,51 @@
+    (set_attr "mode" "SI")])
+ 
+ (define_insn "*subsi3_extended2"
+-  [(set (match_operand:DI                        0 "register_operand" "=r")
++  [(set (match_operand:DI                        0 "register_operand" "= r")
+ 	(sign_extend:DI
+-	  (subreg:SI (minus:DI (match_operand:DI 1 "reg_or_0_operand" " r")
+-			       (match_operand:DI 2 "register_operand" " r"))
++	  (subreg:SI (minus:DI (match_operand:DI 1 "reg_or_0_operand" " rJ")
++			       (match_operand:DI 2 "register_operand" "  r"))
+ 		     0)))]
+   "TARGET_64BIT"
+   "subw\t%0,%z1,%2"
+   [(set_attr "type" "arith")
+    (set_attr "mode" "SI")])
+ 
++(define_insn "negdi2"
++  [(set (match_operand:DI         0 "register_operand" "=r")
++	(neg:DI (match_operand:DI 1 "register_operand" " r")))]
++  "TARGET_64BIT"
++  "neg\t%0,%1"
++  [(set_attr "type" "arith")
++   (set_attr "mode" "DI")])
++
++(define_insn "negsi2"
++  [(set (match_operand:SI         0 "register_operand" "=r")
++	(neg:SI (match_operand:SI 1 "register_operand" " r")))]
++  ""
++  { return TARGET_64BIT ? "negw\t%0,%1" : "neg\t%0,%1"; }
++  [(set_attr "type" "arith")
++   (set_attr "mode" "SI")])
++
++(define_insn "*negsi2_extended"
++  [(set (match_operand:DI          0 "register_operand" "=r")
++	(sign_extend:DI
++	 (neg:SI (match_operand:SI 1 "register_operand" " r"))))]
++  "TARGET_64BIT"
++  "negw\t%0,%1"
++  [(set_attr "type" "arith")
++   (set_attr "mode" "SI")])
++
++(define_insn "*negsi2_extended2"
++  [(set (match_operand:DI                     0 "register_operand" "=r")
++	(sign_extend:DI
++	 (subreg:SI (neg:DI (match_operand:DI 1 "register_operand" " r"))
++	 	    0)))]
++  "TARGET_64BIT"
++  "negw\t%0,%1"
++  [(set_attr "type" "arith")
++   (set_attr "mode" "SI")])
++
+ ;;
+ ;;  ....................
+ ;;
+@@ -1504,7 +1549,7 @@
+   [(set_attr "type" "shift")
+    (set_attr "mode" "SI")])
+ 
+-(define_insn_and_split "<optab>si3_mask"
++(define_insn_and_split "*<optab>si3_mask"
+   [(set (match_operand:SI     0 "register_operand" "= r")
+ 	(any_shift:SI
+ 	    (match_operand:SI 1 "register_operand" "  r")
+@@ -1523,7 +1568,7 @@
+   [(set_attr "type" "shift")
+    (set_attr "mode" "SI")])
+ 
+-(define_insn_and_split "<optab>si3_mask_1"
++(define_insn_and_split "*<optab>si3_mask_1"
+   [(set (match_operand:SI     0 "register_operand" "= r")
+ 	(any_shift:SI
+ 	    (match_operand:SI 1 "register_operand" "  r")
+@@ -1559,7 +1604,7 @@
+   [(set_attr "type" "shift")
+    (set_attr "mode" "DI")])
+ 
+-(define_insn_and_split "<optab>di3_mask"
++(define_insn_and_split "*<optab>di3_mask"
+   [(set (match_operand:DI     0 "register_operand" "= r")
+ 	(any_shift:DI
+ 	    (match_operand:DI 1 "register_operand" "  r")
+@@ -1579,7 +1624,7 @@
+   [(set_attr "type" "shift")
+    (set_attr "mode" "DI")])
+ 
+-(define_insn_and_split "<optab>di3_mask_1"
++(define_insn_and_split "*<optab>di3_mask_1"
+   [(set (match_operand:DI     0 "register_operand" "= r")
+ 	(any_shift:DI
+ 	    (match_operand:DI 1 "register_operand" "  r")
+@@ -1701,6 +1746,38 @@
+   [(set_attr "type" "shift")
+    (set_attr "mode" "SI")])
+ 
++;; Handle AND with 2^N-1 for N from 12 to XLEN.  This can be split into
++;; two logical shifts.  Otherwise it requires 3 instructions: lui,
++;; xor/addi/srli, and.
++(define_split
++  [(set (match_operand:GPR 0 "register_operand")
++	(and:GPR (match_operand:GPR 1 "register_operand")
++		 (match_operand:GPR 2 "p2m1_shift_operand")))]
++  ""
++ [(set (match_dup 0)
++       (ashift:GPR (match_dup 1) (match_dup 2)))
++  (set (match_dup 0)
++       (lshiftrt:GPR (match_dup 0) (match_dup 2)))]
++{
++  operands[2] = GEN_INT (BITS_PER_WORD
++			 - exact_log2 (INTVAL (operands[2]) + 1));
++})
++  
++;; Handle AND with 0xF...F0...0 where there are 32 to 63 zeros.  This can be
++;; split into two shifts.  Otherwise it requires 3 instructions: li, sll, and.
++(define_split
++  [(set (match_operand:DI 0 "register_operand")
++	(and:DI (match_operand:DI 1 "register_operand")
++		(match_operand:DI 2 "high_mask_shift_operand")))]
++  "TARGET_64BIT"
++  [(set (match_dup 0)
++	(lshiftrt:DI (match_dup 1) (match_dup 2)))
++   (set (match_dup 0)
++	(ashift:DI (match_dup 0) (match_dup 2)))]
++{
++  operands[2] = GEN_INT (ctz_hwi (INTVAL (operands[2])));
++})
++
+ ;;
+ ;;  ....................
+ ;;
+@@ -1870,19 +1947,41 @@
+   [(set_attr "type" "fcmp")
+    (set_attr "mode" "<UNITMODE>")])
+ 
+-(define_insn "f<quiet_pattern>_quiet<ANYF:mode><X:mode>4"
+-   [(set (match_operand:X         0 "register_operand" "=r")
++(define_expand "f<quiet_pattern>_quiet<ANYF:mode><X:mode>4"
++   [(parallel [(set (match_operand:X      0 "register_operand")
++		    (unspec:X
++		     [(match_operand:ANYF 1 "register_operand")
++		      (match_operand:ANYF 2 "register_operand")]
++		     QUIET_COMPARISON))
++	       (clobber (match_scratch:X 3))])]
++  "TARGET_HARD_FLOAT")
++
++(define_insn "*f<quiet_pattern>_quiet<ANYF:mode><X:mode>4_default"
++   [(set (match_operand:X      0 "register_operand" "=r")
+ 	 (unspec:X
+-	     [(match_operand:ANYF 1 "register_operand" " f")
+-	      (match_operand:ANYF 2 "register_operand" " f")]
+-	     QUIET_COMPARISON))
++	  [(match_operand:ANYF 1 "register_operand" " f")
++	   (match_operand:ANYF 2 "register_operand" " f")]
++	  QUIET_COMPARISON))
+     (clobber (match_scratch:X 3 "=&r"))]
+-  "TARGET_HARD_FLOAT"
++  "TARGET_HARD_FLOAT && ! HONOR_SNANS (<ANYF:MODE>mode)"
+   "frflags\t%3\n\tf<quiet_pattern>.<fmt>\t%0,%1,%2\n\tfsflags %3"
+   [(set_attr "type" "fcmp")
+    (set_attr "mode" "<UNITMODE>")
+    (set (attr "length") (const_int 12))])
+ 
++(define_insn "*f<quiet_pattern>_quiet<ANYF:mode><X:mode>4_snan"
++   [(set (match_operand:X      0 "register_operand" "=r")
++	 (unspec:X
++	  [(match_operand:ANYF 1 "register_operand" " f")
++	   (match_operand:ANYF 2 "register_operand" " f")]
++	  QUIET_COMPARISON))
++    (clobber (match_scratch:X 3 "=&r"))]
++  "TARGET_HARD_FLOAT && HONOR_SNANS (<ANYF:MODE>mode)"
++  "frflags\t%3\n\tf<quiet_pattern>.<fmt>\t%0,%1,%2\n\tfsflags %3\n\tfeq.<fmt>\tzero,%1,%2"
++  [(set_attr "type" "fcmp")
++   (set_attr "mode" "<UNITMODE>")
++   (set (attr "length") (const_int 16))])
++
+ (define_insn "*seq_zero_<X:mode><GPR:mode>"
+   [(set (match_operand:GPR       0 "register_operand" "=r")
+ 	(eq:GPR (match_operand:X 1 "register_operand" " r")
+@@ -2032,7 +2131,7 @@
+   [(const_int 2)]
+   ""
+ {
+-  riscv_expand_epilogue (false);
++  riscv_expand_epilogue (NORMAL_RETURN);
+   DONE;
+ })
+ 
+@@ -2040,7 +2139,7 @@
+   [(const_int 2)]
+   ""
+ {
+-  riscv_expand_epilogue (true);
++  riscv_expand_epilogue (SIBCALL_RETURN);
+   DONE;
+ })
+ 
+@@ -2082,6 +2181,9 @@
+     emit_insn (gen_eh_set_lr_di (operands[0]));
+   else
+     emit_insn (gen_eh_set_lr_si (operands[0]));
++
++  emit_jump_insn (gen_eh_return_internal ());
++  emit_barrier ();
+   DONE;
+ })
+ 
+@@ -2110,6 +2212,14 @@
+   DONE;
+ })
+ 
++(define_insn_and_split "eh_return_internal"
++  [(eh_return)]
++  ""
++  "#"
++  "epilogue_completed"
++  [(const_int 0)]
++  "riscv_expand_epilogue (EXCEPTION_RETURN); DONE;")
++
+ ;;
+ ;;  ....................
+ ;;
+@@ -2267,12 +2377,30 @@
+   [(set (match_operand:SI 0 "register_operand" "=r")
+ 	(unspec_volatile [(const_int 0)] UNSPECV_FRFLAGS))]
+   "TARGET_HARD_FLOAT"
+-  "frflags %0")
++  "frflags\t%0")
+ 
+ (define_insn "riscv_fsflags"
+   [(unspec_volatile [(match_operand:SI 0 "csr_operand" "rK")] UNSPECV_FSFLAGS)]
+   "TARGET_HARD_FLOAT"
+-  "fsflags %0")
++  "fsflags\t%0")
++
++(define_insn "riscv_mret"
++  [(return)
++   (unspec_volatile [(const_int 0)] UNSPECV_MRET)]
++  ""
++  "mret")
++
++(define_insn "riscv_sret"
++  [(return)
++   (unspec_volatile [(const_int 0)] UNSPECV_SRET)]
++  ""
++  "sret")
++
++(define_insn "riscv_uret"
++  [(return)
++   (unspec_volatile [(const_int 0)] UNSPECV_URET)]
++  ""
++  "uret")
+ 
+ (define_insn "stack_tie<mode>"
+   [(set (mem:BLK (scratch))
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv.opt riscv-gcc/gcc/config/riscv/riscv.opt
+--- gcc-8.3.0/gcc/config/riscv/riscv.opt	2018-03-13 18:35:06.000000000 +0000
++++ riscv-gcc/gcc/config/riscv/riscv.opt	2019-05-20 08:39:51.890042886 +0100
+@@ -45,6 +45,9 @@
+ Enum(abi_type) String(ilp32) Value(ABI_ILP32)
+ 
+ EnumValue
++Enum(abi_type) String(ilp32e) Value(ABI_ILP32E)
++
++EnumValue
+ Enum(abi_type) String(ilp32f) Value(ABI_ILP32F)
+ 
+ EnumValue
+@@ -122,3 +125,5 @@
+ Mask(DOUBLE_FLOAT)
+ 
+ Mask(RVC)
++
++Mask(RVE)
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv-opts.h riscv-gcc/gcc/config/riscv/riscv-opts.h
+--- gcc-8.3.0/gcc/config/riscv/riscv-opts.h	2018-01-03 10:03:58.000000000 +0000
++++ riscv-gcc/gcc/config/riscv/riscv-opts.h	2019-05-20 08:39:51.886042965 +0100
+@@ -23,6 +23,7 @@
+ 
+ enum riscv_abi_type {
+   ABI_ILP32,
++  ABI_ILP32E,
+   ABI_ILP32F,
+   ABI_ILP32D,
+   ABI_LP64,
+diff -ur gcc-8.3.0/gcc/config/riscv/riscv-protos.h riscv-gcc/gcc/config/riscv/riscv-protos.h
+--- gcc-8.3.0/gcc/config/riscv/riscv-protos.h	2018-01-10 23:00:38.000000000 +0000
++++ riscv-gcc/gcc/config/riscv/riscv-protos.h	2019-05-20 08:39:51.886042965 +0100
+@@ -66,7 +66,8 @@
+ extern rtx riscv_return_addr (int, rtx);
+ extern HOST_WIDE_INT riscv_initial_elimination_offset (int, int);
+ extern void riscv_expand_prologue (void);
+-extern void riscv_expand_epilogue (bool);
++extern void riscv_expand_epilogue (int);
++extern bool riscv_epilogue_uses (unsigned int);
+ extern bool riscv_can_use_return_insn (void);
+ extern rtx riscv_function_value (const_tree, const_tree, enum machine_mode);
+ extern bool riscv_expand_block_move (rtx, rtx, rtx);
+Only in riscv-gcc/gcc/config/riscv: t-withmultilib
+Only in riscv-gcc/gcc/config/riscv: withmultilib.h
+diff -ur gcc-8.3.0/gcc/config.gcc riscv-gcc/gcc/config.gcc
+--- gcc-8.3.0/gcc/config.gcc	2019-01-29 15:31:10.000000000 +0000
++++ riscv-gcc/gcc/config.gcc	2019-05-20 08:39:51.742045803 +0100
+@@ -4076,26 +4076,27 @@
+ 		supported_defaults="abi arch tune"
+ 
+ 		case "${target}" in
+-		riscv32*) xlen=32 ;;
++		riscv-* | riscv32*) xlen=32 ;;
+ 		riscv64*) xlen=64 ;;
+ 		*) echo "Unsupported RISC-V target ${target}" 1>&2; exit 1 ;;
+ 		esac
+ 
+ 		# Infer arch from --with-arch, --target, and --with-abi.
+ 		case "${with_arch}" in
+-		rv32i* | rv32g* | rv64i* | rv64g*)
++		rv32e* | rv32i* | rv32g* | rv64i* | rv64g*)
+ 			# OK.
+ 			;;
+ 		"")
+ 			# Infer XLEN, but otherwise assume GC.
+ 			case "${with_abi}" in
++			ilp32e) with_arch="rv32e" ;;
+ 			ilp32 | ilp32f | ilp32d) with_arch="rv32gc" ;;
+ 			lp64 | lp64f | lp64d) with_arch="rv64gc" ;;
+ 			*) with_arch="rv${xlen}gc" ;;
+ 			esac
+ 			;;
+ 		*)
+-			echo "--with-arch=${with_arch} is not supported.  The argument must begin with rv32i, rv32g, rv64i, or rv64g." 1>&2
++			echo "--with-arch=${with_arch} is not supported.  The argument must begin with rv32e, rv32i, rv32g, rv64i, or rv64g." 1>&2
+ 			exit 1
+ 			;;
+ 		esac
+@@ -4104,11 +4105,12 @@
+ 		# pick a default based on the ISA, preferring soft-float
+ 		# unless the D extension is present.
+ 		case "${with_abi}" in
+-		ilp32 | ilp32f | ilp32d | lp64 | lp64f | lp64d)
++		ilp32 | ilp32e | ilp32f | ilp32d | lp64 | lp64f | lp64d)
+ 			;;
+ 		"")
+ 			case "${with_arch}" in
+ 			rv32*d* | rv32g*) with_abi=ilp32d ;;
++			rv32e*) with_abi=ilp32e ;;
+ 			rv32*) with_abi=ilp32 ;;
+ 			rv64*d* | rv64g*) with_abi=lp64d ;;
+ 			rv64*) with_abi=lp64 ;;
+@@ -4122,7 +4124,7 @@
+ 
+ 		# Make sure ABI and ISA are compatible.
+ 		case "${with_abi},${with_arch}" in
+-		ilp32,rv32* \
++		ilp32,rv32* | ilp32e,rv32e* \
+ 		| ilp32f,rv32*f* | ilp32f,rv32g* \
+ 		| ilp32d,rv32*d* | ilp32d,rv32g* \
+ 		| lp64,rv64* \
+@@ -4134,6 +4136,58 @@
+ 			exit 1
+ 			;;
+ 		esac
++
++		# Handle --with-multilib-list.
++		if test "x${with_multilib_list}" != xdefault; then
++			tm_file="${tm_file} riscv/withmultilib.h"
++			tmake_file="${tmake_file} riscv/t-withmultilib"
++
++			case ${with_multilib_list} in
++			ilp32 | ilp32f | ilp32d \
++			| lp64 | lp64f | lp64d )
++				TM_MULTILIB_CONFIG="${with_arch},${with_multilib_list}"
++				;;
++			*)
++				echo "--with-multilib-list=${with_multilib_list} not supported."
++				exit 1
++			esac
++
++			# Define macros to select the default multilib.
++			case ${with_arch} in
++			rv32gc)
++				tm_defines="${tm_defines} TARGET_MLIB_ARCH=1"
++				;;
++			rv64gc)
++				tm_defines="${tm_defines} TARGET_MLIB_ARCH=2"
++				;;
++			*)
++				echo "unsupported --with-arch for --with-multilib-list"
++				exit 1
++			esac
++			case ${with_abi} in
++			ilp32)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=1"
++				;;
++			ilp32f)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=2"
++				;;
++			ilp32d)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=3"
++				;;
++			lp64)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=4"
++				;;
++			lp64f)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=5"
++				;;
++			lp64d)
++				tm_defines="${tm_defines} TARGET_MLIB_ABI=6"
++				;;
++			*)
++				echo "unsupported --with-abi for --with-multilib"
++				exit 1
++			esac
++		fi
+ 		;;
+ 
+ 	mips*-*-*)
+Only in gcc-8.3.0/gcc/doc: cpp.1
+Only in gcc-8.3.0/gcc/doc: cpp.info
+Only in gcc-8.3.0/gcc/doc: cppinternals.info
+diff -ur gcc-8.3.0/gcc/doc/extend.texi riscv-gcc/gcc/doc/extend.texi
+--- gcc-8.3.0/gcc/doc/extend.texi	2019-02-07 14:43:41.000000000 +0000
++++ riscv-gcc/gcc/doc/extend.texi	2019-05-20 08:39:52.010040522 +0100
+@@ -5138,6 +5138,23 @@
+ (@pxref{Basic Asm}). While using extended @code{asm} or a mixture of
+ basic @code{asm} and C code may appear to work, they cannot be
+ depended upon to work reliably and are not supported.
++
++@item interrupt
++@cindex @code{interrupt} function attribute, RISC-V
++Use this attribute to indicate that the specified function is an interrupt
++handler.  The compiler generates function entry and exit sequences suitable
++for use in an interrupt handler when this attribute is present.
++
++You can specify the kind of interrupt to be handled by adding an optional
++parameter to the interrupt attribute like this:
++
++@smallexample
++void f (void) __attribute__ ((interrupt ("user")));
++@end smallexample
++
++Permissible values for this parameter are @code{user}, @code{supervisor},
++and @code{machine}.  If there is no parameter, then it defaults to
++@code{machine}.
+ @end table
+ 
+ @node RL78 Function Attributes
+Only in gcc-8.3.0/gcc/doc: fsf-funding.7
+Only in gcc-8.3.0/gcc/doc: g++.1
+Only in gcc-8.3.0/gcc/doc: gcc.1
+Only in gcc-8.3.0/gcc/doc: gcc.info
+Only in gcc-8.3.0/gcc/doc: gccinstall.info
+Only in gcc-8.3.0/gcc/doc: gccint.info
+Only in gcc-8.3.0/gcc/doc: gcov.1
+Only in gcc-8.3.0/gcc/doc: gcov-dump.1
+Only in gcc-8.3.0/gcc/doc: gcov-tool.1
+Only in gcc-8.3.0/gcc/doc: gfdl.7
+Only in gcc-8.3.0/gcc/doc: gfortran.1
+Only in gcc-8.3.0/gcc/doc: gpl.7
+diff -ur gcc-8.3.0/gcc/doc/install.texi riscv-gcc/gcc/doc/install.texi
+--- gcc-8.3.0/gcc/doc/install.texi	2019-02-08 09:05:40.000000000 +0000
++++ riscv-gcc/gcc/doc/install.texi	2019-05-20 08:39:52.014040443 +0100
+@@ -1072,8 +1072,8 @@
+ @itemx --without-multilib-list
+ Specify what multilibs to build.  @var{list} is a comma separated list of
+ values, possibly consisting of a single value.  Currently only implemented
+-for aarch64*-*-*, arm*-*-*, sh*-*-* and x86-64-*-linux*.  The accepted
+-alues and meaning for each target is given below.
++for aarch64*-*-*, arm*-*-*, riscv*-*-*, sh*-*-* and x86-64-*-linux*.  The
++accepted values and meaning for each target is given below.
+ 
+ @table @code
+ @item aarch64*-*-*
+@@ -1137,6 +1137,13 @@
+ @code{-mfloat-abi=hard}
+ @end multitable
+ 
++@item riscv*-*-*
++@var{list} is a single ABI name.  The target architecture must be either
++@code{rv32gc} or @code{rv64gc}.  This will build a single multilib for the
++specified architecture and ABI pair.  If @code{--with-multilib-list} is not
++given, then a default set of multilibs is selected based on the value of
++@option{--target}.  This is usually a large set of multilibs.
++
+ @item sh*-*-*
+ @var{list} is a comma separated list of CPU names.  These must be of the
+ form @code{sh*} or @code{m*} (in which case they match the compiler option
+diff -ur gcc-8.3.0/gcc/doc/invoke.texi riscv-gcc/gcc/doc/invoke.texi
+--- gcc-8.3.0/gcc/doc/invoke.texi	2019-02-14 23:08:18.000000000 +0000
++++ riscv-gcc/gcc/doc/invoke.texi	2019-05-20 08:39:52.018040364 +0100
+@@ -23079,7 +23079,9 @@
+ @samp{lp64f}, and @samp{lp64d}.  Some calling conventions are impossible to
+ implement on some ISAs: for example, @samp{-march=rv32if -mabi=ilp32d} is
+ invalid because the ABI requires 64-bit values be passed in F registers, but F
+-registers are only 32 bits wide.
++registers are only 32 bits wide.  There is also the @samp{ilp32e} ABI that can
++only be used with the @samp{rv32e} architecture.  This ABI is not well
++specified at present, and is subject to change.
+ 
+ @item -mfdiv
+ @itemx -mno-fdiv
+@@ -23098,7 +23100,8 @@
+ @item -march=@var{ISA-string}
+ @opindex march
+ Generate code for given RISC-V ISA (e.g.@ @samp{rv64im}).  ISA strings must be
+-lower-case.  Examples include @samp{rv64i}, @samp{rv32g}, and @samp{rv32imaf}.
++lower-case.  Examples include @samp{rv64i}, @samp{rv32g}, @samp{rv32e}, and
++@samp{rv32imaf}.
+ 
+ @item -mtune=@var{processor-string}
+ @opindex mtune
+diff -ur gcc-8.3.0/gcc/expr.c riscv-gcc/gcc/expr.c
+--- gcc-8.3.0/gcc/expr.c	2019-02-07 14:35:30.000000000 +0000
++++ riscv-gcc/gcc/expr.c	2019-05-20 08:39:52.042039892 +0100
+@@ -11819,11 +11819,26 @@
+     emit_cmp_and_jump_insns (index, range, GTU, NULL_RTX, mode, 1,
+ 			     default_label, default_probability);
+ 
+-
+   /* If index is in range, it must fit in Pmode.
+      Convert to Pmode so we can index with it.  */
+   if (mode != Pmode)
+-    index = convert_to_mode (Pmode, index, 1);
++    {
++      unsigned int width;
++
++      /* We know the value of INDEX is between 0 and RANGE.  If we have a
++	 sign-extended subreg, and RANGE does not have the sign bit set, then
++	 we have a value that is valid for both sign and zero extension.  In
++	 this case, we get better code if we sign extend.  */
++      if (GET_CODE (index) == SUBREG
++	  && SUBREG_PROMOTED_VAR_P (index)
++	  && SUBREG_PROMOTED_SIGNED_P (index)
++	  && ((width = GET_MODE_PRECISION (as_a <scalar_int_mode> (mode)))
++	      <= HOST_BITS_PER_WIDE_INT)
++	  && ! (UINTVAL (range) & (HOST_WIDE_INT_1U << (width - 1))))
++	index = convert_to_mode (Pmode, index, 0);
++      else
++	index = convert_to_mode (Pmode, index, 1);
++    }
+ 
+   /* Don't let a MEM slip through, because then INDEX that comes
+      out of PIC_CASE_VECTOR_ADDRESS won't be a valid address,
+Only in gcc-8.3.0/gcc/fortran: gfortran.info
+Only in gcc-8.3.0/gcc: gengtype-lex.c
+Only in gcc-8.3.0/gcc/po: be.gmo
+Only in gcc-8.3.0/gcc/po: da.gmo
+Only in gcc-8.3.0/gcc/po: de.gmo
+Only in gcc-8.3.0/gcc/po: el.gmo
+Only in gcc-8.3.0/gcc/po: es.gmo
+Only in gcc-8.3.0/gcc/po: fi.gmo
+Only in gcc-8.3.0/gcc/po: fr.gmo
+Only in gcc-8.3.0/gcc/po: hr.gmo
+Only in gcc-8.3.0/gcc/po: id.gmo
+Only in gcc-8.3.0/gcc/po: ja.gmo
+Only in gcc-8.3.0/gcc/po: nl.gmo
+Only in gcc-8.3.0/gcc/po: ru.gmo
+Only in gcc-8.3.0/gcc/po: sr.gmo
+Only in gcc-8.3.0/gcc/po: sv.gmo
+Only in gcc-8.3.0/gcc/po: tr.gmo
+Only in gcc-8.3.0/gcc/po: uk.gmo
+Only in gcc-8.3.0/gcc/po: vi.gmo
+Only in gcc-8.3.0/gcc/po: zh_CN.gmo
+Only in gcc-8.3.0/gcc/po: zh_TW.gmo
+diff -ur gcc-8.3.0/gcc/testsuite/ChangeLog riscv-gcc/gcc/testsuite/ChangeLog
+--- gcc-8.3.0/gcc/testsuite/ChangeLog	2019-02-22 14:20:37.000000000 +0000
++++ riscv-gcc/gcc/testsuite/ChangeLog	2019-05-20 08:39:52.378033272 +0100
+@@ -1,3 +1,45 @@
++2018-09-25  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/weak-1.c: New.
++
++2018-07-12  Kito Cheng  <kito.cheng@gmail.com>
++
++        * gcc.target/riscv/interrupt-conflict-mode.c: New.
++
++2018-07-02  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/interrupt-debug.c: New.
++
++2018-06-30  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/shift-shift-1.c: New.
++	* gcc.target/riscv/shift-shift-2.c: New.
++	* gcc.target/riscv/shift-shift-3.c: New.
++
++2018-06-06  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/interrupt-5.c (sub3): Add new test.
++	* gcc.target/riscv/interrupt-mmode.c: New.
++	* gcc.target/riscv/interrupt-smode.c: New.
++	* gcc.target/riscv/interrupt-umode.c: New.
++
++2018-05-25  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/interrupt-1.c: New.
++	* gcc.target/riscv/interrupt-2.c: New.
++	* gcc.target/riscv/interrupt-3.c: New.
++	* gcc.target/riscv/interrupt-4.c: New.
++	* gcc.target/riscv/interrupt-5.c: New.
++
++2018-05-18  Kito Cheng  <kito.cheng@gmail.com>
++
++	* gcc.dg/stack-usage-1.c: Add support for rv32e.
++
++2018-05-17  Jim Wilson  <jimw@sifive.com>
++
++	* gcc.target/riscv/switch-qi.c: New.
++	* gcc.target/riscv/switch-si.c: New.
++
+ 2019-02-22  Release Manager
+ 
+ 	* GCC 8.3.0 released.
+diff -ur gcc-8.3.0/gcc/testsuite/gcc.dg/stack-usage-1.c riscv-gcc/gcc/testsuite/gcc.dg/stack-usage-1.c
+--- gcc-8.3.0/gcc/testsuite/gcc.dg/stack-usage-1.c	2017-06-17 16:32:28.000000000 +0100
++++ riscv-gcc/gcc/testsuite/gcc.dg/stack-usage-1.c	2019-05-20 08:39:53.038020267 +0100
+@@ -64,7 +64,11 @@
+ #    define SIZE 240
+ #  endif
+ #elif defined (__riscv)
+-#  define SIZE 240
++#  if defined (__riscv_32e)
++#    define SIZE 252
++#  else
++#    define SIZE 240
++#  endif
+ #elif defined (__AVR__)
+ #if defined (__AVR_3_BYTE_PC__ )
+ #  define SIZE 251 /* 256 - 2 bytes for Y - 3 bytes for return address */
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-1.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-2.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-3.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-4.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-5.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-conflict-mode.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-debug.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-mmode.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-smode.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: interrupt-umode.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: shift-shift-1.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: shift-shift-2.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: shift-shift-3.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: switch-qi.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: switch-si.c
+Only in riscv-gcc/gcc/testsuite/gcc.target/riscv: weak-1.c
+Only in riscv-gcc: .git
+Only in gcc-8.3.0/INSTALL: binaries.html
+Only in gcc-8.3.0/INSTALL: build.html
+Only in gcc-8.3.0/INSTALL: configure.html
+Only in gcc-8.3.0/INSTALL: download.html
+Only in gcc-8.3.0/INSTALL: finalinstall.html
+Only in gcc-8.3.0/INSTALL: gfdl.html
+Only in gcc-8.3.0/INSTALL: index.html
+Only in gcc-8.3.0/INSTALL: old.html
+Only in gcc-8.3.0/INSTALL: prerequisites.html
+Only in gcc-8.3.0/INSTALL: specific.html
+Only in gcc-8.3.0/INSTALL: test.html
+Only in gcc-8.3.0: LAST_UPDATED
+Only in gcc-8.3.0/libcpp/po: be.gmo
+Only in gcc-8.3.0/libcpp/po: ca.gmo
+Only in gcc-8.3.0/libcpp/po: da.gmo
+Only in gcc-8.3.0/libcpp/po: de.gmo
+Only in gcc-8.3.0/libcpp/po: el.gmo
+Only in gcc-8.3.0/libcpp/po: eo.gmo
+Only in gcc-8.3.0/libcpp/po: es.gmo
+Only in gcc-8.3.0/libcpp/po: fi.gmo
+Only in gcc-8.3.0/libcpp/po: fr.gmo
+Only in gcc-8.3.0/libcpp/po: id.gmo
+Only in gcc-8.3.0/libcpp/po: ja.gmo
+Only in gcc-8.3.0/libcpp/po: nl.gmo
+Only in gcc-8.3.0/libcpp/po: pt_BR.gmo
+Only in gcc-8.3.0/libcpp/po: ru.gmo
+Only in gcc-8.3.0/libcpp/po: sr.gmo
+Only in gcc-8.3.0/libcpp/po: sv.gmo
+Only in gcc-8.3.0/libcpp/po: tr.gmo
+Only in gcc-8.3.0/libcpp/po: uk.gmo
+Only in gcc-8.3.0/libcpp/po: vi.gmo
+Only in gcc-8.3.0/libcpp/po: zh_CN.gmo
+Only in gcc-8.3.0/libcpp/po: zh_TW.gmo
+diff -ur gcc-8.3.0/libffi/ChangeLog riscv-gcc/libffi/ChangeLog
+--- gcc-8.3.0/libffi/ChangeLog	2019-02-22 14:20:37.000000000 +0000
++++ riscv-gcc/libffi/ChangeLog	2019-05-20 08:39:53.790005450 +0100
+@@ -1,3 +1,12 @@
++2018-05-08  Andreas Schwab  <schwab@suse.de>
++
++	Backport of RISC-V support for libffi
++	* configure.host: Add RISC-V support.
++	* Makefile.am: Likewise.
++	* Makefile.in: Regenerate.
++	* src/riscv/ffi.c, src/riscv/ffitarget.h, src/riscv/sysv.S: New
++	files.
++
+ 2019-02-22  Release Manager
+ 
+ 	* GCC 8.3.0 released.
+diff -ur gcc-8.3.0/libffi/configure.host riscv-gcc/libffi/configure.host
+--- gcc-8.3.0/libffi/configure.host	2015-01-13 23:30:33.000000000 +0000
++++ riscv-gcc/libffi/configure.host	2019-05-20 08:39:53.790005450 +0100
+@@ -195,6 +195,11 @@
+ 	TARGET=POWERPC; TARGETDIR=powerpc
+ 	;;
+ 
++  riscv*-*)
++	TARGET=RISCV; TARGETDIR=riscv
++	SOURCES="ffi.c sysv.S"
++	;;
++
+   s390-*-* | s390x-*-*)
+ 	TARGET=S390; TARGETDIR=s390
+ 	SOURCES="ffi.c sysv.S"
+diff -ur gcc-8.3.0/libffi/Makefile.am riscv-gcc/libffi/Makefile.am
+--- gcc-8.3.0/libffi/Makefile.am	2016-03-03 13:40:30.000000000 +0000
++++ riscv-gcc/libffi/Makefile.am	2019-05-20 08:39:53.790005450 +0100
+@@ -138,6 +138,7 @@
+ 	src/or1k/ffitarget.h						\
+ 	src/pa/ffitarget.h						\
+ 	src/powerpc/ffitarget.h src/powerpc/asm.h src/powerpc/ffi_powerpc.h \
++	src/riscv/ffitarget.h			  			\
+ 	src/s390/ffitarget.h						\
+ 	src/sh/ffitarget.h						\
+ 	src/sh64/ffitarget.h						\
+@@ -173,6 +174,7 @@
+ 	 src/powerpc/linux64_closure.S src/powerpc/ppc_closure.S	\
+ 	 src/powerpc/aix.S src/powerpc/darwin.S src/powerpc/aix_closure.S \
+ 	 src/powerpc/darwin_closure.S src/powerpc/ffi_darwin.c		\
++	src/riscv/ffi.c src/riscv/sysv.S				\
+ 	src/s390/ffi.c src/s390/sysv.S					\
+ 	src/sh/ffi.c src/sh/sysv.S					\
+ 	src/sh64/ffi.c src/sh64/sysv.S					\
+diff -ur gcc-8.3.0/libffi/Makefile.in riscv-gcc/libffi/Makefile.in
+--- gcc-8.3.0/libffi/Makefile.in	2019-02-22 14:22:13.000000000 +0000
++++ riscv-gcc/libffi/Makefile.in	2019-05-20 08:39:53.790005450 +0100
+@@ -432,6 +432,7 @@
+ 	src/or1k/ffitarget.h						\
+ 	src/pa/ffitarget.h						\
+ 	src/powerpc/ffitarget.h src/powerpc/asm.h src/powerpc/ffi_powerpc.h \
++	src/riscv/ffitarget.h			  			\
+ 	src/s390/ffitarget.h						\
+ 	src/sh/ffitarget.h						\
+ 	src/sh64/ffitarget.h						\
+@@ -467,6 +468,7 @@
+ 	 src/powerpc/linux64_closure.S src/powerpc/ppc_closure.S	\
+ 	 src/powerpc/aix.S src/powerpc/darwin.S src/powerpc/aix_closure.S \
+ 	 src/powerpc/darwin_closure.S src/powerpc/ffi_darwin.c		\
++	src/riscv/ffi.c src/riscv/sysv.S				\
+ 	src/s390/ffi.c src/s390/sysv.S					\
+ 	src/sh/ffi.c src/sh/sysv.S					\
+ 	src/sh64/ffi.c src/sh64/sysv.S					\
+@@ -831,6 +833,16 @@
+ 	src/powerpc/$(DEPDIR)/$(am__dirstamp)
+ src/powerpc/ffi_darwin.lo: src/powerpc/$(am__dirstamp) \
+ 	src/powerpc/$(DEPDIR)/$(am__dirstamp)
++src/riscv/$(am__dirstamp):
++	@$(MKDIR_P) src/riscv
++	@: > src/riscv/$(am__dirstamp)
++src/riscv/$(DEPDIR)/$(am__dirstamp):
++	@$(MKDIR_P) src/riscv/$(DEPDIR)
++	@: > src/riscv/$(DEPDIR)/$(am__dirstamp)
++src/riscv/ffi.lo: src/riscv/$(am__dirstamp) \
++	src/riscv/$(DEPDIR)/$(am__dirstamp)
++src/riscv/sysv.lo: src/riscv/$(am__dirstamp) \
++	src/riscv/$(DEPDIR)/$(am__dirstamp)
+ src/s390/$(am__dirstamp):
+ 	@$(MKDIR_P) src/s390
+ 	@: > src/s390/$(am__dirstamp)
+@@ -1051,6 +1063,10 @@
+ 	-rm -f src/prep_cif.lo
+ 	-rm -f src/raw_api.$(OBJEXT)
+ 	-rm -f src/raw_api.lo
++	-rm -f src/riscv/ffi.$(OBJEXT)
++	-rm -f src/riscv/ffi.lo
++	-rm -f src/riscv/sysv.$(OBJEXT)
++	-rm -f src/riscv/sysv.lo
+ 	-rm -f src/s390/ffi.$(OBJEXT)
+ 	-rm -f src/s390/ffi.lo
+ 	-rm -f src/s390/sysv.$(OBJEXT)
+@@ -1167,6 +1183,8 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/powerpc/$(DEPDIR)/linux64_closure.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/powerpc/$(DEPDIR)/ppc_closure.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/powerpc/$(DEPDIR)/sysv.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@src/riscv/$(DEPDIR)/ffi.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@src/riscv/$(DEPDIR)/sysv.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/s390/$(DEPDIR)/ffi.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/s390/$(DEPDIR)/sysv.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@src/sh/$(DEPDIR)/ffi.Plo@am__quote@
+@@ -1268,6 +1286,7 @@
+ 	-rm -rf src/or1k/.libs src/or1k/_libs
+ 	-rm -rf src/pa/.libs src/pa/_libs
+ 	-rm -rf src/powerpc/.libs src/powerpc/_libs
++	-rm -rf src/riscv/.libs src/riscv/_libs
+ 	-rm -rf src/s390/.libs src/s390/_libs
+ 	-rm -rf src/sh/.libs src/sh/_libs
+ 	-rm -rf src/sh64/.libs src/sh64/_libs
+@@ -1672,6 +1691,8 @@
+ 	-rm -f src/pa/$(am__dirstamp)
+ 	-rm -f src/powerpc/$(DEPDIR)/$(am__dirstamp)
+ 	-rm -f src/powerpc/$(am__dirstamp)
++	-rm -f src/riscv/$(DEPDIR)/$(am__dirstamp)
++	-rm -f src/riscv/$(am__dirstamp)
+ 	-rm -f src/s390/$(DEPDIR)/$(am__dirstamp)
+ 	-rm -f src/s390/$(am__dirstamp)
+ 	-rm -f src/sh/$(DEPDIR)/$(am__dirstamp)
+@@ -1701,7 +1722,7 @@
+ 
+ distclean: distclean-multi distclean-recursive
+ 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+-	-rm -rf src/$(DEPDIR) src/aarch64/$(DEPDIR) src/alpha/$(DEPDIR) src/arc/$(DEPDIR) src/arm/$(DEPDIR) src/avr32/$(DEPDIR) src/bfin/$(DEPDIR) src/cris/$(DEPDIR) src/frv/$(DEPDIR) src/ia64/$(DEPDIR) src/m32r/$(DEPDIR) src/m68k/$(DEPDIR) src/m88k/$(DEPDIR) src/metag/$(DEPDIR) src/microblaze/$(DEPDIR) src/mips/$(DEPDIR) src/moxie/$(DEPDIR) src/nios2/$(DEPDIR) src/or1k/$(DEPDIR) src/pa/$(DEPDIR) src/powerpc/$(DEPDIR) src/s390/$(DEPDIR) src/sh/$(DEPDIR) src/sh64/$(DEPDIR) src/sparc/$(DEPDIR) src/tile/$(DEPDIR) src/vax/$(DEPDIR) src/x86/$(DEPDIR) src/xtensa/$(DEPDIR)
++	-rm -rf src/$(DEPDIR) src/aarch64/$(DEPDIR) src/alpha/$(DEPDIR) src/arc/$(DEPDIR) src/arm/$(DEPDIR) src/avr32/$(DEPDIR) src/bfin/$(DEPDIR) src/cris/$(DEPDIR) src/frv/$(DEPDIR) src/ia64/$(DEPDIR) src/m32r/$(DEPDIR) src/m68k/$(DEPDIR) src/m88k/$(DEPDIR) src/metag/$(DEPDIR) src/microblaze/$(DEPDIR) src/mips/$(DEPDIR) src/moxie/$(DEPDIR) src/nios2/$(DEPDIR) src/or1k/$(DEPDIR) src/pa/$(DEPDIR) src/powerpc/$(DEPDIR) src/riscv/$(DEPDIR) src/s390/$(DEPDIR) src/sh/$(DEPDIR) src/sh64/$(DEPDIR) src/sparc/$(DEPDIR) src/tile/$(DEPDIR) src/vax/$(DEPDIR) src/x86/$(DEPDIR) src/xtensa/$(DEPDIR)
+ 	-rm -f Makefile
+ distclean-am: clean-am distclean-compile distclean-generic \
+ 	distclean-hdr distclean-libtool distclean-tags
+@@ -1840,7 +1861,7 @@
+ maintainer-clean: maintainer-clean-multi maintainer-clean-recursive
+ 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+ 	-rm -rf $(top_srcdir)/autom4te.cache
+-	-rm -rf src/$(DEPDIR) src/aarch64/$(DEPDIR) src/alpha/$(DEPDIR) src/arc/$(DEPDIR) src/arm/$(DEPDIR) src/avr32/$(DEPDIR) src/bfin/$(DEPDIR) src/cris/$(DEPDIR) src/frv/$(DEPDIR) src/ia64/$(DEPDIR) src/m32r/$(DEPDIR) src/m68k/$(DEPDIR) src/m88k/$(DEPDIR) src/metag/$(DEPDIR) src/microblaze/$(DEPDIR) src/mips/$(DEPDIR) src/moxie/$(DEPDIR) src/nios2/$(DEPDIR) src/or1k/$(DEPDIR) src/pa/$(DEPDIR) src/powerpc/$(DEPDIR) src/s390/$(DEPDIR) src/sh/$(DEPDIR) src/sh64/$(DEPDIR) src/sparc/$(DEPDIR) src/tile/$(DEPDIR) src/vax/$(DEPDIR) src/x86/$(DEPDIR) src/xtensa/$(DEPDIR)
++	-rm -rf src/$(DEPDIR) src/aarch64/$(DEPDIR) src/alpha/$(DEPDIR) src/arc/$(DEPDIR) src/arm/$(DEPDIR) src/avr32/$(DEPDIR) src/bfin/$(DEPDIR) src/cris/$(DEPDIR) src/frv/$(DEPDIR) src/ia64/$(DEPDIR) src/m32r/$(DEPDIR) src/m68k/$(DEPDIR) src/m88k/$(DEPDIR) src/metag/$(DEPDIR) src/microblaze/$(DEPDIR) src/mips/$(DEPDIR) src/moxie/$(DEPDIR) src/nios2/$(DEPDIR) src/or1k/$(DEPDIR) src/pa/$(DEPDIR) src/powerpc/$(DEPDIR) src/riscv/$(DEPDIR) src/s390/$(DEPDIR) src/sh/$(DEPDIR) src/sh64/$(DEPDIR) src/sparc/$(DEPDIR) src/tile/$(DEPDIR) src/vax/$(DEPDIR) src/x86/$(DEPDIR) src/xtensa/$(DEPDIR)
+ 	-rm -f Makefile
+ maintainer-clean-am: distclean-am maintainer-clean-aminfo \
+ 	maintainer-clean-generic maintainer-clean-vti
+Only in riscv-gcc/libffi/src: riscv
+diff -ur gcc-8.3.0/libgcc/ChangeLog riscv-gcc/libgcc/ChangeLog
+--- gcc-8.3.0/libgcc/ChangeLog	2019-02-22 14:20:37.000000000 +0000
++++ riscv-gcc/libgcc/ChangeLog	2019-05-20 08:39:53.806005135 +0100
+@@ -1,3 +1,9 @@
++2018-05-18  Kito Cheng <kito.cheng@gmail.com>
++	    Monk Chiang  <sh.chiang04@gmail.com>
++	    Jim Wilson <jimw@sifive.com>
++
++	* config/riscv/save-restore.S: Add support for rv32e.
++
+ 2019-02-22  Release Manager
+ 
+ 	* GCC 8.3.0 released.
+diff -ur gcc-8.3.0/libgcc/config/riscv/save-restore.S riscv-gcc/libgcc/config/riscv/save-restore.S
+--- gcc-8.3.0/libgcc/config/riscv/save-restore.S	2018-01-03 10:03:58.000000000 +0000
++++ riscv-gcc/libgcc/config/riscv/save-restore.S	2019-05-20 08:39:53.882003637 +0100
+@@ -294,6 +294,48 @@
+ 
+ #else
+ 
++#ifdef __riscv_32e
++FUNC_BEGIN(__riscv_save_2)
++FUNC_BEGIN(__riscv_save_1)
++FUNC_BEGIN(__riscv_save_0)
++  .cfi_startproc
++  # __riscv_save_* routine use t0/x5 as return address
++  .cfi_return_column 5
++  addi sp, sp, -12
++  .cfi_def_cfa_offset 12
++  sw s1, 0(sp)
++  .cfi_offset 9, -12
++  sw s0, 4(sp)
++  .cfi_offset 8, -8
++  sw ra, 8(sp)
++  .cfi_offset 1, 0
++  jr t0
++  .cfi_endproc
++FUNC_END(__riscv_save_2)
++FUNC_END(__riscv_save_1)
++FUNC_END(__riscv_save_0)
++
++FUNC_BEGIN(__riscv_restore_2)
++FUNC_BEGIN(__riscv_restore_1)
++FUNC_BEGIN(__riscv_restore_0)
++  .cfi_startproc
++  .cfi_def_cfa_offset 14
++  lw s1, 0(sp)
++  .cfi_restore 9
++  lw s0, 4(sp)
++  .cfi_restore 8
++  lw ra, 8(sp)
++  .cfi_restore 1
++  addi sp, sp, 12
++  .cfi_def_cfa_offset 0
++  ret
++  .cfi_endproc
++FUNC_END(__riscv_restore_2)
++FUNC_END(__riscv_restore_1)
++FUNC_END(__riscv_restore_0)
++
++#else
++
+ FUNC_BEGIN (__riscv_save_12)
+   .cfi_startproc
+   # __riscv_save_* routine use t0/x5 as return address
+@@ -486,4 +528,6 @@
+ FUNC_END (__riscv_restore_1)
+ FUNC_END (__riscv_restore_0)
+ 
+-#endif
++#endif /* __riscv_32e */
++
++#endif /* __riscv_xlen == 64 */
+Only in gcc-8.3.0/libgomp: libgomp.info
+Only in gcc-8.3.0/libitm: libitm.info
+Only in gcc-8.3.0/libquadmath: libquadmath.info
+Only in gcc-8.3.0: MD5SUMS
+Only in gcc-8.3.0: NEWS

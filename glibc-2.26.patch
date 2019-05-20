@@ -1,0 +1,79 @@
+diff -ur glibc-2.26/config.h.in riscv-glibc/config.h.in
+--- glibc-2.26/config.h.in	2017-08-02 13:57:16.000000000 +0100
++++ riscv-glibc/config.h.in	2019-05-20 08:41:16.796369907 +0100
+@@ -99,6 +99,11 @@
+ /* AArch64 big endian ABI */
+ #undef HAVE_AARCH64_BE
+ 
++/* RISC-V integer ABI for ld.so.  */
++#undef RISCV_ABI_XLEN
++
++/* RISC-V floating-point ABI for ld.so.  */
++#undef RISCV_ABI_FLEN
+ 
+ /* Defined to some form of __attribute__ ((...)) if the compiler supports
+    a different, more efficient calling convention.  */
+diff -ur glibc-2.26/elf/elf.h riscv-glibc/elf/elf.h
+--- glibc-2.26/elf/elf.h	2017-08-02 13:57:16.000000000 +0100
++++ riscv-glibc/elf/elf.h	2019-05-20 08:41:16.816369513 +0100
+@@ -3690,6 +3690,20 @@
+ 
+ #define R_TILEGX_NUM		130
+ 
++/* RISC-V relocations.  */
++#define R_RISCV_NONE          0
++#define R_RISCV_32            1
++#define R_RISCV_64            2
++#define R_RISCV_RELATIVE      3
++#define R_RISCV_COPY          4
++#define R_RISCV_JUMP_SLOT     5
++#define R_RISCV_TLS_DTPMOD32  6
++#define R_RISCV_TLS_DTPMOD64  7
++#define R_RISCV_TLS_DTPREL32  8
++#define R_RISCV_TLS_DTPREL64  9
++#define R_RISCV_TLS_TPREL32  10
++#define R_RISCV_TLS_TPREL64  11
++
+ /* BPF specific declarations.  */
+ 
+ #define R_BPF_NONE		0	/* No reloc */
+Only in riscv-glibc/: .git
+diff -ur glibc-2.26/malloc/tst-mallocstate.c riscv-glibc/malloc/tst-mallocstate.c
+--- glibc-2.26/malloc/tst-mallocstate.c	2017-08-02 13:57:16.000000000 +0100
++++ riscv-glibc/malloc/tst-mallocstate.c	2019-05-20 08:41:17.076364391 +0100
+@@ -26,6 +26,7 @@
+ 
+ #include "malloc.h"
+ 
++#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_25)
+ /* Make the compatibility symbols availabile to this test case.  */
+ void *malloc_get_state (void);
+ compat_symbol_reference (libc, malloc_get_state, malloc_get_state, GLIBC_2_0);
+@@ -503,3 +504,11 @@
+ 
+   return errors;
+ }
++#else
++static int do_test (void)
++{
++  return 0;
++}
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++#endif
+diff -ur glibc-2.26/nptl/Makefile riscv-glibc/nptl/Makefile
+--- glibc-2.26/nptl/Makefile	2017-08-02 13:57:16.000000000 +0100
++++ riscv-glibc/nptl/Makefile	2019-05-20 08:41:17.296360055 +0100
+@@ -611,6 +611,10 @@
+ librt = $(common-objpfx)rt/librt.a
+ endif
+ 
++# `make check' sometimes triggers a rebuild of librt.so using this Makefile,
++# which ignores librt's dependence on libpthread
++$(common-objpfx)rt/librt.so: $(shared-thread-library)
++
+ $(objpfx)tst-cancel17: $(librt)
+ $(objpfx)tst-cancelx17: $(librt)
+ $(objpfx)tst-_res1mod2.so: $(objpfx)tst-_res1mod1.so
+Only in riscv-glibc/sysdeps: riscv
+Only in riscv-glibc/sysdeps/unix/sysv/linux: riscv

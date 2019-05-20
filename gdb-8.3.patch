@@ -1,0 +1,387 @@
+Only in gdb-8.3/bfd/doc: aoutx.texi
+Only in gdb-8.3/bfd/doc: archive.texi
+Only in gdb-8.3/bfd/doc: archures.texi
+Only in gdb-8.3/bfd/doc: bfd.info
+Only in gdb-8.3/bfd/doc: bfdio.texi
+Only in gdb-8.3/bfd/doc: bfdt.texi
+Only in gdb-8.3/bfd/doc: bfdver.texi
+Only in gdb-8.3/bfd/doc: bfdwin.texi
+Only in gdb-8.3/bfd/doc: cache.texi
+Only in gdb-8.3/bfd/doc: coffcode.texi
+Only in gdb-8.3/bfd/doc: core.texi
+Only in gdb-8.3/bfd/doc: elfcode.texi
+Only in gdb-8.3/bfd/doc: elf.texi
+Only in gdb-8.3/bfd/doc: format.texi
+Only in gdb-8.3/bfd/doc: hash.texi
+Only in gdb-8.3/bfd/doc: init.texi
+Only in gdb-8.3/bfd/doc: libbfd.texi
+Only in gdb-8.3/bfd/doc: linker.texi
+Only in gdb-8.3/bfd/doc: mmo.texi
+Only in gdb-8.3/bfd/doc: opncls.texi
+Only in gdb-8.3/bfd/doc: reloc.texi
+Only in gdb-8.3/bfd/doc: section.texi
+Only in gdb-8.3/bfd/doc: syms.texi
+Only in gdb-8.3/bfd/doc: targets.texi
+Only in riscv-gdb/bfd/po: .cvsignore
+Only in gdb-8.3/bfd/po: da.gmo
+Only in gdb-8.3/bfd/po: es.gmo
+Only in gdb-8.3/bfd/po: fi.gmo
+Only in gdb-8.3/bfd/po: fr.gmo
+Only in gdb-8.3/bfd/po: hr.gmo
+Only in gdb-8.3/bfd/po: id.gmo
+Only in gdb-8.3/bfd/po: ja.gmo
+Only in gdb-8.3/bfd/po: pt.gmo
+Only in gdb-8.3/bfd/po: ro.gmo
+Only in gdb-8.3/bfd/po: ru.gmo
+Only in gdb-8.3/bfd/po: rw.gmo
+Only in gdb-8.3/bfd/po: sr.gmo
+Only in gdb-8.3/bfd/po: sv.gmo
+Only in gdb-8.3/bfd/po: tr.gmo
+Only in gdb-8.3/bfd/po: uk.gmo
+Only in gdb-8.3/bfd/po: vi.gmo
+Only in gdb-8.3/bfd/po: zh_CN.gmo
+diff -ur gdb-8.3/bfd/version.h riscv-gdb/bfd/version.h
+--- gdb-8.3/bfd/version.h	2019-05-11 19:18:37.000000000 +0100
++++ riscv-gdb/bfd/version.h	2019-05-20 08:40:43.013035569 +0100
+@@ -16,7 +16,7 @@
+ 
+    In releases, the date is not included in either version strings or
+    sonames.  */
+-#define BFD_VERSION_DATE 20190511
++#define BFD_VERSION_DATE 20190516
+ #define BFD_VERSION @bfd_version@
+ #define BFD_VERSION_STRING  @bfd_version_package@ @bfd_version_string@
+ #define REPORT_BUGS_TO @report_bugs_to@
+Only in riscv-gdb/: binutils
+diff -ur gdb-8.3/configure.ac riscv-gdb/configure.ac
+--- gdb-8.3/configure.ac	2019-05-11 19:22:06.000000000 +0100
++++ riscv-gdb/configure.ac	2019-05-20 08:40:43.081034229 +0100
+@@ -139,7 +139,7 @@
+ # binutils, gas and ld appear in that order because it makes sense to run
+ # "make check" in that particular order.
+ # If --enable-gold is used, "gold" may replace "ld".
+-host_tools="flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools libcc1 gotools"
++host_tools="texinfo flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools libcc1 gotools"
+ 
+ # these libraries are built for the target environment, and are built after
+ # the host libraries and the host tools (which may be a cross compiler)
+Only in riscv-gdb/: COPYING.LIBGLOSS
+Only in riscv-gdb/: COPYING.NEWLIB
+Only in riscv-gdb/: .cvsignore
+diff -ur gdb-8.3/djunpack.bat riscv-gdb/djunpack.bat
+--- gdb-8.3/djunpack.bat	2019-05-11 19:22:11.000000000 +0100
++++ riscv-gdb/djunpack.bat	2019-05-20 08:40:43.089034072 +0100
+@@ -17,8 +17,8 @@
+ Rem The following 2 lines need to be changed with each new GDB release, to
+ Rem be identical to the name of the top-level directory where the GDB
+ Rem distribution unpacks itself.
+-set GDBVER=$package-8.3
+-if "%GDBVER%"=="$package-8.3" GoTo EnvOk
++set GDBVER=gdb-5.0
++if "%GDBVER%"=="gdb-5.0" GoTo EnvOk
+ Rem If their environment space is too small, re-exec with a larger one
+ command.com /e:4096 /c %0 %1
+ GoTo End
+Only in riscv-gdb/: elfcpp
+Only in riscv-gdb/etc: add-log.el
+Only in riscv-gdb/etc: add-log.vi
+Only in riscv-gdb/etc: update-copyright.py
+Only in riscv-gdb/: gas
+Only in gdb-8.3/gdb: ada-exp.c
+Only in gdb-8.3/gdb: ada-lex.c
+Only in gdb-8.3/gdb: c-exp.c
+diff -ur gdb-8.3/gdb/ChangeLog riscv-gdb/gdb/ChangeLog
+--- gdb-8.3/gdb/ChangeLog	2019-05-11 19:19:03.000000000 +0100
++++ riscv-gdb/gdb/ChangeLog	2019-05-20 08:40:43.557024850 +0100
+@@ -1,5 +1,13 @@
+ 2019-05-11  Joel Brobecker  <brobecker@adacore.com>
+ 
++	* version.in: Set GDB version number to 8.3.0.DATE-git.
++
++2019-05-11  Joel Brobecker  <brobecker@adacore.com>
++
++	GDB 8.3 released.
++
++2019-05-11  Joel Brobecker  <brobecker@adacore.com>
++
+ 	* version.in: Set GDB version number to 8.3.
+ 
+ 2019-05-08  Tom Tromey  <tromey@adacore.com>
+diff -ur gdb-8.3/gdb/configure.tgt riscv-gdb/gdb/configure.tgt
+--- gdb-8.3/gdb/configure.tgt	2019-02-27 04:51:48.000000000 +0000
++++ riscv-gdb/gdb/configure.tgt	2019-05-20 08:40:43.637023274 +0100
+@@ -555,6 +555,7 @@
+ riscv*-*-*)
+ 	# Target: RISC-V architecture
+ 	gdb_target_obs=""
++	gdb_sim=../sim/riscv/libsim.a
+ 	;;
+ 
+ rl78-*-elf)
+Only in gdb-8.3/gdb: cp-name-parser.c
+Only in gdb-8.3/gdb: d-exp.c
+Only in gdb-8.3/gdb/doc: annotate.info
+Only in gdb-8.3/gdb/doc: gcore.1
+Only in gdb-8.3/gdb/doc: gdb.1
+Only in gdb-8.3/gdb/doc: gdb-add-index.1
+Only in gdb-8.3/gdb/doc: gdb.info
+Only in gdb-8.3/gdb/doc: gdb.info-1
+Only in gdb-8.3/gdb/doc: gdb.info-2
+Only in gdb-8.3/gdb/doc: gdb.info-3
+Only in gdb-8.3/gdb/doc: gdb.info-4
+Only in gdb-8.3/gdb/doc: gdb.info-5
+Only in gdb-8.3/gdb/doc: gdb.info-6
+Only in gdb-8.3/gdb/doc: gdb.info-7
+Only in gdb-8.3/gdb/doc: gdb.info-8
+Only in gdb-8.3/gdb/doc: gdbinit.5
+Only in gdb-8.3/gdb/doc: gdbserver.1
+Only in gdb-8.3/gdb/doc: stabs.info
+Only in gdb-8.3/gdb: f-exp.c
+Only in gdb-8.3/gdb: gcore
+Only in gdb-8.3/gdb: go-exp.c
+Only in gdb-8.3/gdb: m2-exp.c
+Only in gdb-8.3/gdb: p-exp.c
+Only in gdb-8.3/gdb/po: gdb.pot
+Only in gdb-8.3/gdb: rust-exp.c
+Only in gdb-8.3/gdb/testsuite/lib: pdtrace
+diff -ur gdb-8.3/gdb/version.in riscv-gdb/gdb/version.in
+--- gdb-8.3/gdb/version.in	2019-05-11 19:19:03.000000000 +0100
++++ riscv-gdb/gdb/version.in	2019-05-20 08:40:43.965016811 +0100
+@@ -1 +1 @@
+-8.3
++8.3.0.DATE-git
+Only in riscv-gdb/: .git
+Only in riscv-gdb/: .gitattributes
+Only in riscv-gdb/: .gitignore
+Only in riscv-gdb/: gold
+Only in riscv-gdb/: gprof
+Only in riscv-gdb/include/gdb: sim-riscv.h
+Only in riscv-gdb/: ld
+Only in riscv-gdb/: makefile.vms
+Only in gdb-8.3: md5.sum
+Only in riscv-gdb/: multilib.am
+Only in riscv-gdb/opcodes/po: .cvsignore
+Only in gdb-8.3/opcodes/po: da.gmo
+Only in gdb-8.3/opcodes/po: de.gmo
+Only in gdb-8.3/opcodes/po: es.gmo
+Only in gdb-8.3/opcodes/po: fi.gmo
+Only in gdb-8.3/opcodes/po: fr.gmo
+Only in gdb-8.3/opcodes/po: ga.gmo
+Only in gdb-8.3/opcodes/po: id.gmo
+Only in gdb-8.3/opcodes/po: it.gmo
+Only in gdb-8.3/opcodes/po: nl.gmo
+Only in gdb-8.3/opcodes/po: pt_BR.gmo
+Only in gdb-8.3/opcodes/po: ro.gmo
+Only in gdb-8.3/opcodes/po: sr.gmo
+Only in gdb-8.3/opcodes/po: sv.gmo
+Only in gdb-8.3/opcodes/po: tr.gmo
+Only in gdb-8.3/opcodes/po: uk.gmo
+Only in gdb-8.3/opcodes/po: vi.gmo
+Only in gdb-8.3/opcodes/po: zh_CN.gmo
+Only in riscv-gdb/: setup.com
+diff -ur gdb-8.3/sim/common/nltvals.def riscv-gdb/sim/common/nltvals.def
+--- gdb-8.3/sim/common/nltvals.def	2017-06-04 16:51:27.000000000 +0100
++++ riscv-gdb/sim/common/nltvals.def	2019-05-20 08:40:44.413007984 +0100
+@@ -574,3 +574,51 @@
+ /* end lm32 sys target macros */
+ #endif
+ #endif
++#ifdef NL_TARGET_riscv
++#ifdef sys_defs
++/* from syscall.h */
++/* begin riscv sys target macros */
++ { "SYS_access", 1033 },
++ { "SYS_brk", 214 },
++ { "SYS_chdir", 49 },
++ { "SYS_close", 57 },
++ { "SYS_dup", 23 },
++ { "SYS_exit", 93 },
++ { "SYS_exit_group", 94 },
++ { "SYS_faccessat", 48 },
++ { "SYS_fcntl", 25 },
++ { "SYS_fstat", 80 },
++ { "SYS_fstatat", 79 },
++ { "SYS_getcwd", 17 },
++ { "SYS_getdents", 61 },
++ { "SYS_getegid", 177 },
++ { "SYS_geteuid", 175 },
++ { "SYS_getgid", 176 },
++ { "SYS_getmainvars", 2011 },
++ { "SYS_getpid", 172 },
++ { "SYS_gettimeofday", 169 },
++ { "SYS_getuid", 174 },
++ { "SYS_kill", 129 },
++ { "SYS_link", 1025 },
++ { "SYS_lseek", 62 },
++ { "SYS_lstat", 1039 },
++ { "SYS_mkdir", 1030 },
++ { "SYS_mmap", 222 },
++ { "SYS_mremap", 216 },
++ { "SYS_munmap", 215 },
++ { "SYS_open", 1024 },
++ { "SYS_openat", 56 },
++ { "SYS_pread", 67 },
++ { "SYS_pwrite", 68 },
++ { "SYS_read", 63 },
++ { "SYS_rt_sigaction", 134 },
++ { "SYS_stat", 1038 },
++ { "SYS_time", 1062 },
++ { "SYS_times", 153 },
++ { "SYS_uname", 160 },
++ { "SYS_unlink", 1026 },
++ { "SYS_write", 64 },
++ { "SYS_writev", 66 },
++/* end riscv sys target macros */
++#endif
++#endif
+diff -ur gdb-8.3/sim/configure riscv-gdb/sim/configure
+--- gdb-8.3/sim/configure	2018-09-05 08:27:13.000000000 +0100
++++ riscv-gdb/sim/configure	2019-05-20 08:40:44.417007905 +0100
+@@ -633,6 +633,7 @@
+ docdir
+ oldincludedir
+ includedir
++runstatedir
+ localstatedir
+ sharedstatedir
+ sysconfdir
+@@ -686,6 +687,7 @@
+ moxie
+ msp430
+ or1k
++riscv
+ rl78
+ rx
+ sh64
+@@ -733,6 +735,7 @@
+ sysconfdir='${prefix}/etc'
+ sharedstatedir='${prefix}/com'
+ localstatedir='${prefix}/var'
++runstatedir='${localstatedir}/run'
+ includedir='${prefix}/include'
+ oldincludedir='/usr/include'
+ docdir='${datarootdir}/doc/${PACKAGE}'
+@@ -985,6 +988,15 @@
+   | -silent | --silent | --silen | --sile | --sil)
+     silent=yes ;;
+ 
++  -runstatedir | --runstatedir | --runstatedi | --runstated \
++  | --runstate | --runstat | --runsta | --runst | --runs \
++  | --run | --ru | --r)
++    ac_prev=runstatedir ;;
++  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
++  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
++  | --run=* | --ru=* | --r=*)
++    runstatedir=$ac_optarg ;;
++
+   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
+     ac_prev=sbindir ;;
+   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
+@@ -1122,7 +1134,7 @@
+ for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
+ 		datadir sysconfdir sharedstatedir localstatedir includedir \
+ 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
+-		libdir localedir mandir
++		libdir localedir mandir runstatedir
+ do
+   eval ac_val=\$$ac_var
+   # Remove trailing slashes.
+@@ -1275,6 +1287,7 @@
+   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
++  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+   --libdir=DIR            object code libraries [EPREFIX/lib]
+   --includedir=DIR        C header files [PREFIX/include]
+   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+@@ -3838,6 +3851,13 @@
+ 
+ 
+        ;;
++   riscv*-*-*)
++
++  sim_arch=riscv
++  subdirs="$subdirs riscv"
++
++
++       ;;
+    rl78-*-*)
+ 
+   sim_arch=rl78
+diff -ur gdb-8.3/sim/configure.tgt riscv-gdb/sim/configure.tgt
+--- gdb-8.3/sim/configure.tgt	2018-01-05 04:07:23.000000000 +0000
++++ riscv-gdb/sim/configure.tgt	2019-05-20 08:40:44.417007905 +0100
+@@ -79,6 +79,9 @@
+    or1k-*-* | or1knd-*-*)
+        SIM_ARCH(or1k)
+        ;;
++   riscv*-*-*)
++       SIM_ARCH(riscv)
++       ;;
+    rl78-*-*)
+        SIM_ARCH(rl78)
+        ;;
+Only in riscv-gdb/sim: riscv
+diff -ur gdb-8.3/sim/testsuite/configure riscv-gdb/sim/testsuite/configure
+--- gdb-8.3/sim/testsuite/configure	2018-09-05 08:27:13.000000000 +0100
++++ riscv-gdb/sim/testsuite/configure	2019-05-20 08:40:44.513006013 +0100
+@@ -619,6 +619,7 @@
+ docdir
+ oldincludedir
+ includedir
++runstatedir
+ localstatedir
+ sharedstatedir
+ sysconfdir
+@@ -686,6 +687,7 @@
+ sysconfdir='${prefix}/etc'
+ sharedstatedir='${prefix}/com'
+ localstatedir='${prefix}/var'
++runstatedir='${localstatedir}/run'
+ includedir='${prefix}/include'
+ oldincludedir='/usr/include'
+ docdir='${datarootdir}/doc/${PACKAGE}'
+@@ -938,6 +940,15 @@
+   | -silent | --silent | --silen | --sile | --sil)
+     silent=yes ;;
+ 
++  -runstatedir | --runstatedir | --runstatedi | --runstated \
++  | --runstate | --runstat | --runsta | --runst | --runs \
++  | --run | --ru | --r)
++    ac_prev=runstatedir ;;
++  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
++  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
++  | --run=* | --ru=* | --r=*)
++    runstatedir=$ac_optarg ;;
++
+   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
+     ac_prev=sbindir ;;
+   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
+@@ -1075,7 +1086,7 @@
+ for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
+ 		datadir sysconfdir sharedstatedir localstatedir includedir \
+ 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
+-		libdir localedir mandir
++		libdir localedir mandir runstatedir
+ do
+   eval ac_val=\$$ac_var
+   # Remove trailing slashes.
+@@ -1228,6 +1239,7 @@
+   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
++  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+   --libdir=DIR            object code libraries [EPREFIX/lib]
+   --includedir=DIR        C header files [PREFIX/include]
+   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+@@ -1928,6 +1940,9 @@
+    or1k-*-* | or1knd-*-*)
+        sim_arch=or1k
+        ;;
++   riscv*-*-*)
++       sim_arch=riscv
++       ;;
+    rl78-*-*)
+        sim_arch=rl78
+        ;;
+Only in riscv-gdb/sim/testsuite/sim: riscv
