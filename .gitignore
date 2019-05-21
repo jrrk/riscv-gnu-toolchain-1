@@ -7,7 +7,11 @@ Makefile
 !/regression/Makefile
 build-binutils-newlib/
 build-gcc-newlib-stage1/
+build-gcc-newlib-stage2/
 build-gdb-newlib/
+build-newlib-nano/
+build-newlib/
+install-newlib-nano/
 riscv-binutils/
 riscv-gcc/
 riscv-gdb/
