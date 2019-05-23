@@ -23,6 +23,6 @@ mv gcc-8.3.0 riscv-gcc
 mv newlib-3.0.0 riscv-newlib
 mv gdb-8.3 riscv-gdb
 mv glibc-2.26 riscv-glibc
-export PATH=/opt/riscv/bin
+export PATH=/opt/riscv/bin:$PATH
 ./configure --prefix=/opt/riscv
 make -j 4 -s
